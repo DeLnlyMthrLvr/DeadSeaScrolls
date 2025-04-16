@@ -64,7 +64,7 @@ char_token = {
 }
 
 def alphabet_path():
-    return Path(__file__).parent / "data" / "alphabet"
+    return Path(__file__).parent.parent / "data" / "alphabet"
 
 def load_alphabet() -> dict[str, list[np.ndarray]]:
 
