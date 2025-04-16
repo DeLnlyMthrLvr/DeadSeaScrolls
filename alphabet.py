@@ -16,7 +16,7 @@ class A(Enum):
     Kaf_final = "Kaf-final"
     Lamed = "Lamed"
     Mem = "Mem"
-    Mem_medial = "Mem_medial"
+    Mem_medial = "Mem-medial"
     Nun_final = "Nun-final"
     Nun_medial = "Nun-medial"
     Pe = "Pe"
@@ -32,6 +32,7 @@ class A(Enum):
     Waw = "Waw"
     Yod = "Yod"
     Zayin = "Zayin"
+    Space = " "
 
 char_token = {
     A.Alef: 0,
@@ -60,7 +61,8 @@ char_token = {
     A.Tsadi_medial: 23,
     A.Waw: 24,
     A.Yod: 25,
-    A.Zayin: 26
+    A.Zayin: 26,
+    A.Space: 27
 }
 
 def alphabet_path():
