@@ -27,7 +27,7 @@ args = get_dagan_args()
 
 dataset_path = args.dataset_path
 
-raw_data = np.array(load_the_dataset('data/alphabet/'))
+raw_data = np.array(load_the_dataset('data/alphabet/', balance_classes=True, add_data=3000))
 #raw_data = [k for k in raw_data_dict.values()]
 
 #raw_data = np.load('data/omniglot_data.npy').copy()
