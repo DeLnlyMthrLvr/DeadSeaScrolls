@@ -94,7 +94,7 @@ def load_alphabet() -> dict[str, list[np.ndarray]]:
             if not ent_image.name.endswith(".pgm"):
                 continue
 
-            img = Image.open(ent_image)
+            img = Image.open(ent_image).convert("L")
             img_array = np.array(img)
 
             images.append(img_array)
