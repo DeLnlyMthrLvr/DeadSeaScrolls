@@ -10,6 +10,12 @@ class NoiseSettings:
     ...
 
 
-def create_alphabet_images(text: list[A], alphabet: dict[str, list[np.ndarray]], noise: NoiseSettings | None = None):
-    ...
+def create_alphabet_images(
+        text: list[A],
+        alphabet: dict[str, list[np.ndarray]],
+        noise: NoiseSettings | None = None
+    ):
+
+    if noise is None:
+        noise = NoiseSettings()
 
