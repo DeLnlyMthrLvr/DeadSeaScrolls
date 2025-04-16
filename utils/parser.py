@@ -38,7 +38,7 @@ def get_dagan_args():
         "--num_training_classes",
         nargs="?",
         type=int,
-        default=25,
+        default=24,
         help="Number of classes to use for training.",
     )
     parser.add_argument(

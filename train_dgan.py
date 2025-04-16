@@ -4,13 +4,16 @@ from gan.discriminator import Discriminator
 from gan.generator import Generator
 from gan.dataset import create_dagan_dataloader
 from utils.parser import get_dagan_args
-from utils.alphabet import load_alphabet
+from alphabet import load_alphabet
 import torchvision.transforms as transforms
 import torch
 import os
 import torch.optim as optim
 import numpy as np
+from torch.utils.tensorboard import SummaryWriter
+import time
 
+from gan.Hdataset import load_the_dataset
 
 # To maintain reproducibility
 torch.manual_seed(0)
@@ -24,10 +27,10 @@ args = get_dagan_args()
 
 dataset_path = args.dataset_path
 
-# raw_data_dict = load_alphabet()
-# raw_data = [k for k in raw_data_dict.values()]
+raw_data = np.array(load_the_dataset('data/alphabet/'))
+#raw_data = [k for k in raw_data_dict.values()]
 
-raw_data = np.load('data/omniglot_data.npy').copy()
+#raw_data = np.load('data/omniglot_data.npy').copy()
 
 print("raw_data shape: ", raw_data.shape)
 
@@ -100,6 +103,7 @@ trainer = DaganTrainer(
     load_checkpoint_path=load_checkpoint_path,
     display_transform=display_transform,
     should_display_generations=should_display_generations,
+    writer=SummaryWriter(f'runs/{time.strftime("%Y%m%d-%H%M%S")}/'),
 )
 trainer.train(data_loader=train_dataloader, epochs=epochs, val_images=flat_val_data)
 

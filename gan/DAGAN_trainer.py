@@ -11,6 +11,8 @@ from torch.autograd import grad as torch_grad
 from PIL import Image
 import PIL
 import warnings
+from IPython.display import display
+from torch.utils.tensorboard import SummaryWriter
 
 
 class DaganTrainer:
@@ -30,6 +32,7 @@ class DaganTrainer:
         load_checkpoint_path=None,
         display_transform=None,
         should_display_generations=True,
+        writer=None,
     ):
         self.device = device
         self.g = generator.to(device)
@@ -46,6 +49,8 @@ class DaganTrainer:
         self.display_transform = display_transform or transforms.ToTensor()
         self.checkpoint_path = save_checkpoint_path
         self.should_display_generations = should_display_generations
+        self.writrer = writer
+        self.clock = 0
 
         # Track progress of fixed images throughout the training
         self.tracking_images = None
@@ -66,7 +71,9 @@ class DaganTrainer:
         # Get gradient penalty
         gradient_penalty = self._gradient_penalty(x1, x2, generated_data)
         self.losses["GP"].append(gradient_penalty.item())
-
+        self.writrer.add_scalar(
+            "losses/gradient_penalty", gradient_penalty.item(), self.clock
+        )
         # Create total loss and optimize
         self.d_opt.zero_grad()
         d_loss = d_generated.mean() - d_real.mean() + gradient_penalty
@@ -76,6 +83,9 @@ class DaganTrainer:
 
         # Record loss
         self.losses["D"].append(d_loss.item())
+        self.writrer.add_scalar(
+            "losses/record", gradient_penalty.item(), self.clock
+        )
 
     def _generator_train_iteration(self, x1):
         """ """
@@ -92,6 +102,7 @@ class DaganTrainer:
 
         # Record loss
         self.losses["G"].append(g_loss.item())
+        self.writrer.add_scalar("losses/generator", g_loss.item(), self.clock)
 
     def _gradient_penalty(self, x1, x2, generated_data):
         # Calculate interpolation
@@ -164,16 +175,22 @@ class DaganTrainer:
             self._train_epoch(data_loader, val_images)
             self.epoch += 1
             self._save_checkpoint()
+            self.clock += 1
 
     def sample_generator(self, input_images, z=None):
         if z is None:
             z = torch.randn((input_images.shape[0], self.g.z_dim)).to(self.device)
         return self.g(input_images, z)
 
-    def render_img(self, arr):
+    def render_img(self, arr, tag='sample'):
         arr = (arr * 0.5) + 0.5
         arr = np.uint8(arr * 255)
-        display(Image.fromarray(arr, mode="L").transpose(PIL.Image.TRANSPOSE))
+        imgs = arr.reshape(12, 32, 32)
+        grid = imgs.reshape(4, 3, 32, 32)
+        grid = grid.transpose(0, 2, 1, 3)
+        mosaic = grid.reshape(4*32, 3*32)
+        self.writrer.add_image(f'renders/{tag}',np.transpose([mosaic], (0, 1, 2)), self.clock)
+        self.clock += 1
 
     def sample_train_images(self, n, data_loader):
         with warnings.catch_warnings():
@@ -202,11 +219,11 @@ class DaganTrainer:
         img_size = images[0].shape[-1]
         images.append(torch.tensor(np.ones((1, img_size, img_size))).float())
         images.append(torch.tensor(np.ones((1, img_size, img_size))).float() * -1)
-        self.render_img(torch.cat(images, 1)[0])
+        self.render_img(torch.cat(images, 1)[0], 'original')
         z = torch.randn((len(images), self.g.z_dim)).to(self.device)
         inp = torch.stack(images).to(self.device)
         train_gen = self.g(inp, z).cpu()
-        self.render_img(train_gen.reshape(-1, train_gen.shape[-1]))
+        self.render_img(train_gen.reshape(-1, train_gen.shape[-1]), 'generated')
 
     def print_progress(self, data_loader, val_images):
         self.g.eval()
