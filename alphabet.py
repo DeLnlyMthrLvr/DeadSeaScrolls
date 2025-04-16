@@ -2,7 +2,7 @@ from pathlib import Path
 from enum import Enum
 from PIL import Image
 import numpy as np
-
+import pandas as pd
 
 class A(Enum):
     Alef = "Alef"
@@ -33,6 +33,13 @@ class A(Enum):
     Yod = "Yod"
     Zayin = "Zayin"
     Space = " "
+
+
+Ngrams = list[tuple[A, ...]]
+
+str_to_enum = {
+    e.value: e for e in A
+}
 
 char_token = {
     A.Alef: 0,
@@ -95,6 +102,35 @@ def load_alphabet() -> dict[str, list[np.ndarray]]:
         results[name] = images
 
     return results
+
+def load_n_grams() -> tuple[Ngrams, np.ndarray, np.ndarray]:
+    df = pd.read_csv(alphabet_path().parent / "ngrams" / "ngrams_frequencies_withNames.csv")
+    df["Names"] = df["Names"].str.replace("Tasdi-final", "Tsadi-final")
+    df["Names"] = df["Names"].str.replace(r'Tsadi(?!-final)', "Tsadi-medial", regex=True)
+
+    ngrams = []
+    for names in df["Names"]:
+        list_names = names.split("_")
+        ngrams.append(tuple(str_to_enum[name] for name in list_names))
+
+    frequencies = df["Frequencies"].to_numpy()
+    ngram_tokens = np.arange(len(ngrams))
+
+    return ngrams, frequencies, ngram_tokens
+
+
+def sample_ngrams(N: int, ngrams: Ngrams = None, frequencies: np.ndarray = None, ngram_tokens: np.ndarray = None) -> tuple[Ngrams, np.ndarray]:
+
+    if ngrams is None:
+        ngrams, frequencies, ngram_tokens = load_n_grams()
+
+    weights = frequencies / frequencies.sum()
+    inds = np.random.choice(len(ngrams), size=N, replace=True, p=weights)
+
+    sampled_ngrams = [ngrams[i] for i in inds]
+
+    return sampled_ngrams, ngram_tokens[inds]
+
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ import numpy as np
 import random
 
 import cv2
-from alphabet import A, load_alphabet, char_token
+from alphabet import A, load_alphabet, char_token, sample_ngrams
 
 space_token = char_token[A.Space]
 
@@ -98,13 +98,20 @@ if __name__ == "__main__":
     from matplotlib import pyplot as plt
 
     alpha = load_alphabet()
-    letters = list(char_token.keys())
-    sequence_ints = np.random.randint(0, len(letters), 50)
-    sequence = [letters[i] for i in sequence_ints]
+    ngrams, _ = sample_ngrams(30)
+
+    sequence = []
+
+    for i, ngram in enumerate(ngrams):
+        sequence.extend(ngram)
+
+        if i != (len(ngrams) - 1):
+            sequence.append(A.Space)
+
     sample = create_alphabet_image(
         sequence,
         # [A.Bet, A.Dalet, A.Mem, A.Qof, A.Space, A.Taw],
-        (400, 400),
+        (1000, 400),
         alpha
     )
 
