@@ -4,6 +4,11 @@ from PIL import Image
 import numpy as np
 import pandas as pd
 
+MEAN_NGRAM_CHAR = 3.742667
+MAX_NGRAM_CHAR = 10
+MEAN_CHAR_WIDTH = 37.8
+MEAN_CHAR_HEIGHT = 47.6
+
 class A(Enum):
     Alef = "Alef"
     Ayin = "Ayin"

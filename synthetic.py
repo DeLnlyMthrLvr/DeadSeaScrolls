@@ -6,7 +6,8 @@ import random
 import colorsys
 
 import cv2
-from alphabet import A, load_alphabet, char_token, sample_ngrams
+import tqdm
+from alphabet import A, load_alphabet, char_token, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR
 
 space_token = char_token[A.Space]
 
@@ -14,7 +15,6 @@ space_token = char_token[A.Space]
 class SynthSettings:
 
     spacing_multiplier: float = 0.9
-    letter_size: tuple[int, int] = (50, 20) # Does nothign atm bcs it looked ugly
     image_size: tuple[int, int] = (400, 1000)
 
     margins: tuple[int, int] = (40, 40)
@@ -133,30 +133,81 @@ def create_alphabet_image(
     return _create_image(images, char_tokens, settings)
 
 
+
+CharTokens = np.ndarray # (n, max_sequence_length)
+SegmentationMasks = np.ndarray # (n, char_chanels, height, width)
+ScrollImages = np.ndarray # (n, height, width)
+
+class DataGenerator:
+
+    def __init__(self, max_sequence_length: int = 150, settings: SynthSettings | None = None):
+
+        self.alphabet = load_alphabet()
+        self.ngrams, self.ngram_frequencies, self.ngram_tokens = load_n_grams()
+        self.settings = SynthSettings() if settings is None else settings
+        self.max_sequence_length = max_sequence_length
+        self.gen_ngrams = int((max_sequence_length // MEAN_NGRAM_CHAR) + 10)
+
+    def generate_ngram_scrolls(self, N: int = 1_000) -> tuple[CharTokens, SegmentationMasks, ScrollImages]:
+
+        batch_char_tokens = []
+        batch_seg_masks = []
+        batch_scrolls = []
+
+        for _ in tqdm.tqdm(range(N), total=N, disable=True):
+            ngrams, _ = sample_ngrams(self.gen_ngrams, self.ngrams, self.ngram_frequencies, self.ngram_tokens)
+
+            sequence = []
+
+            for i, ngram in enumerate(ngrams):
+                sequence.extend(ngram)
+
+                if len(sequence) >= self.max_sequence_length:
+                    break
+
+                # Add space between ngrams
+                if i != (len(ngrams) - 1):
+                    sequence.append(A.Space)
+
+            sequence = sequence[:self.max_sequence_length]
+
+            sample = create_alphabet_image(
+                sequence,
+                # [A.Bet, A.Dalet, A.Mem, A.Qof, A.Space, A.Taw],
+                self.alphabet,
+                self.settings
+            )
+
+            tokens = sample.tokens
+            remaining = self.max_sequence_length - len(tokens)
+
+            assert remaining >= 0
+
+            tokens = tokens + [-1] * remaining
+
+            batch_char_tokens.append(np.array(tokens, dtype=np.int8)[np.newaxis, ...])
+            batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
+            batch_scrolls.append(sample.image[np.newaxis, ...])
+
+
+        return np.concat(batch_char_tokens, axis=0), np.concat(batch_seg_masks, axis=0), np.concat(batch_scrolls, axis=0)
+
+
 if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
 
-    alpha = load_alphabet()
-    ngrams, _ = sample_ngrams(50)
+    generator = DataGenerator()
 
-    sequence = []
+    tokens, seg, scrolls = generator.generate_ngram_scrolls(3)
 
-    for i, ngram in enumerate(ngrams):
-        sequence.extend(ngram)
 
-        if i != (len(ngrams) - 1):
-            sequence.append(A.Space)
+    for i in range(scrolls.shape[0]):
+        fig, ax = plt.subplots()
+        ax.imshow(scrolls[i], cmap="binary")
+        print(tokens[i])
 
-    sample = create_alphabet_image(
-        sequence,
-        # [A.Bet, A.Dalet, A.Mem, A.Qof, A.Space, A.Taw],
-        alpha
-    )
 
-    fig, ax = plt.subplots()
-
-    ax.imshow(sample.image, cmap="binary")
 
     # masks = sample.segmentation
     # num_masks = masks.shape[0]
