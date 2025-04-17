@@ -8,6 +8,7 @@ import colorsys
 import cv2
 import tqdm
 from alphabet import A, load_alphabet, char_token, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR
+from noise import Noise
 
 space_token = char_token[A.Space]
 
@@ -199,13 +200,20 @@ if __name__ == "__main__":
 
     generator = DataGenerator()
 
-    tokens, seg, scrolls = generator.generate_ngram_scrolls(3)
+    noise = Noise(generator.settings.image_size)
 
+    tokens, seg, scrolls = generator.generate_ngram_scrolls(4)
 
-    for i in range(scrolls.shape[0]):
-        fig, ax = plt.subplots()
-        ax.imshow(scrolls[i], cmap="binary")
-        print(tokens[i])
+    noise.create_masks(2)
+    dmgd = noise.damage(scrolls, strength=0.3)
+
+    for i in range(dmgd.shape[0]):
+        fig, ax = plt.subplots(1, 2)
+
+        ax[0].imshow(scrolls[i], cmap="binary")
+        ax[1].imshow(dmgd[i], cmap="binary")
+
+        fig.tight_layout()
 
 
 
