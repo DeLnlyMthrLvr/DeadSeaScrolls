@@ -117,6 +117,7 @@ def _create_image(
         res_seg = np.empty((segmentation.shape[0], sd_height, sd_width), dtype=np.uint8)
         for i_seg in range(segmentation.shape[0]):
             res_seg[i_seg, ...] = cv2.resize(segmentation[i_seg, ...], (sd_width, sd_height), interpolation=cv2.INTER_AREA)
+        segmentation = res_seg
 
 
     return Sample(
@@ -217,21 +218,20 @@ if __name__ == "__main__":
     from matplotlib import pyplot as plt
 
     generator = DataGenerator(settings=SynthSettings(downscale_factor=0.3))
-
     noise = Noise(generator.settings.downscale_size)
 
-    tokens, seg, scrolls = generator.generate_ngram_scrolls(4)
+    tokens, seg, scrolls = generator.generate_ngram_scrolls(1000)
 
     noise.create_masks(2)
     dmgd = noise.damage(scrolls, strength=0.3)
 
-    for i in range(dmgd.shape[0]):
-        fig, ax = plt.subplots(1, 2)
+    # for i in range(dmgd.shape[0]):
+    #     fig, ax = plt.subplots(1, 2)
 
-        ax[0].imshow(scrolls[i], cmap="binary")
-        ax[1].imshow(dmgd[i], cmap="binary")
+    #     ax[0].imshow(scrolls[i], cmap="binary")
+    #     ax[1].imshow(dmgd[i], cmap="binary")
 
-        fig.tight_layout()
+    #     fig.tight_layout()
 
 
 
