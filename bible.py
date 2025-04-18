@@ -86,7 +86,6 @@ def encode():
 
     encoded = []
 
-
     with open(data_dir / "chapter_1.txt", "r", encoding="utf-8") as f:
 
         for line in f:
@@ -112,9 +111,9 @@ def encode():
                 encoded.append(A.Space)
 
     print(encoded)
-
     print(n_encoded, n_non_encoded)
     print(non_encoded)
+
 
 
 
