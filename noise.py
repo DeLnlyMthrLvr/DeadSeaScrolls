@@ -75,8 +75,8 @@ class Noise:
                 perlin.append(np.rot90(noise, k=2))
 
 
-        print(perlin[0].shape, perlin[1].shape, perlin[-1].shape)
         self.perlin = np.stack(perlin, axis=0)
+
 
     def damage(self, images: np.ndarray, strength: float = 0.2):
         """Cheaper operation
