@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from synthetic import DataGenerator, SynthSettings
 
-TARGET_H, TARGET_W = 80, 200
+TARGET_H, TARGET_W = 80, 200 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
