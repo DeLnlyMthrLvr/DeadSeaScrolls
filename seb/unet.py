@@ -6,7 +6,7 @@ class UNet(nn.Module):
     def __init__(self, num_classes=27, base_ch=64):
         super().__init__()
         # Encoder
-        self.enc1 = self.conv_block(3, base_ch)
+        self.enc1 = self.conv_block(1, base_ch)
         self.enc2 = self.conv_block(base_ch, base_ch*2)
         self.enc3 = self.conv_block(base_ch*2, base_ch*4)
         self.enc4 = self.conv_block(base_ch*4, base_ch*8)
