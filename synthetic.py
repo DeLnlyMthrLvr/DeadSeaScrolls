@@ -17,10 +17,16 @@ class SynthSettings:
 
     spacing_multiplier: float = 0.9
     image_size: tuple[int, int] = (400, 1000)
+    downscale_factor: float = 1
+    downscale_size: tuple[int, int] = None
 
     margins: tuple[int, int] = (40, 40)
     allowed_portion_in_margin: float = 0.3
     line_space: int = 10
+
+    def __post_init__(self):
+        self.downscale_size = (int(self.image_size[0] * self.downscale_factor), int(self.image_size[1] * self.downscale_factor))
+
 
 
 @dataclass
@@ -104,6 +110,15 @@ def _create_image(
     else:
         used_tokens = char_tokens[:consumed_letters]
 
+    if settings.downscale_factor < 1.0:
+        sd_height, sd_width = settings.downscale_size
+        canvas = cv2.resize(canvas, (sd_width, sd_height), interpolation=cv2.INTER_AREA)
+
+        res_seg = np.empty((segmentation.shape[0], sd_height, sd_width), dtype=np.uint8)
+        for i_seg in range(segmentation.shape[0]):
+            res_seg[i_seg, ...] = cv2.resize(segmentation[i_seg, ...], (sd_width, sd_height), interpolation=cv2.INTER_AREA)
+
+
     return Sample(
         tokens=used_tokens,
         image=canvas,
@@ -141,7 +156,11 @@ ScrollImages = np.ndarray # (n, height, width)
 
 class DataGenerator:
 
-    def __init__(self, max_sequence_length: int = 150, settings: SynthSettings | None = None):
+    def __init__(
+        self,
+        max_sequence_length: int = 150,
+        settings: SynthSettings | None = None
+    ):
 
         self.alphabet = load_alphabet()
         self.ngrams, self.ngram_frequencies, self.ngram_tokens = load_n_grams()
@@ -174,7 +193,6 @@ class DataGenerator:
 
             sample = create_alphabet_image(
                 sequence,
-                # [A.Bet, A.Dalet, A.Mem, A.Qof, A.Space, A.Taw],
                 self.alphabet,
                 self.settings
             )
@@ -198,9 +216,9 @@ if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
 
-    generator = DataGenerator()
+    generator = DataGenerator(settings=SynthSettings(downscale_factor=0.3))
 
-    noise = Noise(generator.settings.image_size)
+    noise = Noise(generator.settings.downscale_size)
 
     tokens, seg, scrolls = generator.generate_ngram_scrolls(4)
 
