@@ -6,11 +6,12 @@ import torch
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from synthetic import DataGenerator, SynthSettings
+from torchsummary import summary
 
 TARGET_H, TARGET_W = 80, 200 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
+device = "cpu"
 class CustomDataset(Dataset):
     def __init__(self,scrolls, masks):
         self.scrolls = scrolls
@@ -71,6 +72,8 @@ if __name__ == "__main__":
     val_tokens, val_masks, val_scrolls = generator.generate_ngram_scrolls(200)
     print("Data Generated")
     model = UNet(num_classes=27).to(device)
+    summary(model,(1,120,300))
+    print(model)
     print("Starting Training")
     for epoch in range(10):
         train(model=model, 
