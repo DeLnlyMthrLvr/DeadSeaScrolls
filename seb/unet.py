@@ -5,9 +5,9 @@ import torch.nn.functional as F
 class UNet(nn.Module):
     def __init__(self, num_classes=27, base_ch=64):
         super().__init__()
-        # Encoder
-        self.enc1 = self.conv_block(1, base_ch)
-        self.enc2 = self.conv_block(base_ch, base_ch*2)
+        # Encoder innitial image shape 120, 300
+        self.enc1 = self.conv_block(1, base_ch) # 
+        self.enc2 = self.conv_block(base_ch, base_ch*2) # 64, 
         self.enc3 = self.conv_block(base_ch*2, base_ch*4)
         self.enc4 = self.conv_block(base_ch*4, base_ch*8)
         # Bottleneck
@@ -34,14 +34,20 @@ class UNet(nn.Module):
 
     def forward(self, x):
         # Encoder
-        e1 = self.enc1(x); p1 = F.max_pool2d(e1, 2)
-        e2 = self.enc2(p1); p2 = F.max_pool2d(e2, 2)
-        e3 = self.enc3(p2); p3 = F.max_pool2d(e3, 2)
-        e4 = self.enc4(p3); p4 = F.max_pool2d(e4, 2)
+        e1 = self.enc1(x)
+        p1 = F.max_pool2d(e1, 2)
+        e2 = self.enc2(p1)
+        p2 = F.max_pool2d(e2, 2)
+        e3 = self.enc3(p2)
+        p3 = F.max_pool2d(e3, 2)
+        e4 = self.enc4(p3)
+        p4 = F.max_pool2d(e4, 2)
         # Bottleneck
         b = self.bottleneck(p4)
         # Decoder
         d4 = self.up4(b)
+        print(d4.shape) # (batch_size, channels, image height, image width)
+        print(e4.shape)
         d4 = torch.cat([d4, e4], dim=1)
         d4 = self.dec4(d4)
         d3 = self.up3(d4)
