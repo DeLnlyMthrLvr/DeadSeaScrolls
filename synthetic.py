@@ -9,6 +9,7 @@ import cv2
 import tqdm
 from alphabet import A, load_alphabet, char_token, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR
 from noise import Noise
+from bible import BibleTexts
 
 space_token = char_token[A.Space]
 
@@ -168,6 +169,7 @@ class DataGenerator:
         self.settings = SynthSettings() if settings is None else settings
         self.max_sequence_length = max_sequence_length
         self.gen_ngrams = int((max_sequence_length // MEAN_NGRAM_CHAR) + 10)
+        self.bible = BibleTexts(max_sequence_length)
 
     def generate_ngram_scrolls(self, N: int = 1_000) -> tuple[CharTokens, SegmentationMasks, ScrollImages]:
 
@@ -209,6 +211,32 @@ class DataGenerator:
             batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
             batch_scrolls.append(sample.image[np.newaxis, ...])
 
+        return np.concat(batch_char_tokens, axis=0), np.concat(batch_seg_masks, axis=0), np.concat(batch_scrolls, axis=0)
+
+
+    def generate_passages_scrolls(self, N: int = 1_000) -> tuple[CharTokens, SegmentationMasks, ScrollImages]:
+
+        batch_char_tokens = []
+        batch_seg_masks = []
+        batch_scrolls = []
+
+        for passage in self.bible.sample_passages(N):
+
+            sample = create_alphabet_image(
+                passage,
+                self.alphabet,
+                self.settings
+            )
+
+            tokens = sample.tokens
+            remaining = self.max_sequence_length - len(tokens)
+
+            assert remaining >= 0
+            tokens = tokens + [-1] * remaining
+
+            batch_char_tokens.append(np.array(tokens, dtype=np.int8)[np.newaxis, ...])
+            batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
+            batch_scrolls.append(sample.image[np.newaxis, ...])
 
         return np.concat(batch_char_tokens, axis=0), np.concat(batch_seg_masks, axis=0), np.concat(batch_scrolls, axis=0)
 
@@ -220,18 +248,18 @@ if __name__ == "__main__":
     generator = DataGenerator(settings=SynthSettings(downscale_factor=0.3))
     noise = Noise(generator.settings.downscale_size)
 
-    tokens, seg, scrolls = generator.generate_ngram_scrolls(1000)
+    tokens, seg, scrolls = generator.generate_ngram_scrolls(10)
 
     noise.create_masks(2)
     dmgd = noise.damage(scrolls, strength=0.3)
 
-    # for i in range(dmgd.shape[0]):
-    #     fig, ax = plt.subplots(1, 2)
+    for i in range(dmgd.shape[0]):
+        fig, ax = plt.subplots(1, 2)
 
-    #     ax[0].imshow(scrolls[i], cmap="binary")
-    #     ax[1].imshow(dmgd[i], cmap="binary")
+        ax[0].imshow(scrolls[i], cmap="binary")
+        ax[1].imshow(dmgd[i], cmap="binary")
 
-    #     fig.tight_layout()
+        fig.tight_layout()
 
 
 
