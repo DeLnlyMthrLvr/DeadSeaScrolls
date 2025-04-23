@@ -245,10 +245,10 @@ if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
 
-    generator = DataGenerator(settings=SynthSettings(downscale_factor=0.3))
+    generator = DataGenerator(settings=SynthSettings(downscale_factor=1))
     noise = Noise(generator.settings.downscale_size)
 
-    tokens, seg, scrolls = generator.generate_ngram_scrolls(10)
+    tokens, seg, scrolls = generator.generate_passages_scrolls(10)
 
     noise.create_masks(2)
     dmgd = noise.damage(scrolls, strength=0.3)
@@ -277,26 +277,6 @@ if __name__ == "__main__":
 
     #     figs.append(fig)
     #     axs_all.append(axs)
-
-
-    # num_classes = sample.segmentation.shape[0]
-    # colors = [
-    #     tuple(int(c * 255) for c in colorsys.hsv_to_rgb(i / num_classes, 1.0, 1.0))
-    #     for i in range(num_classes)
-    # ]
-
-    # overlay = cv2.cvtColor(sample.image, cv2.COLOR_GRAY2BGR)
-    # for token, color in zip(range(num_classes), colors):
-    #     mask = sample.segmentation[token].astype(bool)
-    #     for c in range(3):
-    #         overlay[..., c][mask] = color[c]
-
-    # blended = overlay
-
-    # fig, ax = plt.subplots(figsize=(12, 6))
-    # ax.imshow(blended)
-    # ax.set_title("Segmentation Overlay")
-    # ax.axis('off')
 
 
     plt.show()
