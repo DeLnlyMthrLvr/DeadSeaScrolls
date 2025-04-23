@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 sea/
-
+seb/checkpoints/*
 # C extensions
 *.so
 
@@ -174,3 +174,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+#Seb
+/seb/SnakePract/*
+/seb/runs/*
