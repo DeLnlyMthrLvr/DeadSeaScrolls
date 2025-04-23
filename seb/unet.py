@@ -6,22 +6,27 @@ class UNet(nn.Module):
     def __init__(self, num_classes=27, base_ch=64):
         super().__init__()
         # Encoder innitial image shape 120, 300
-        self.enc1 = self.conv_block(1, base_ch) # 
-        self.enc2 = self.conv_block(base_ch, base_ch*2) # 64, 
-        self.enc3 = self.conv_block(base_ch*2, base_ch*4)
-        self.enc4 = self.conv_block(base_ch*4, base_ch*8)
+        self.enc1 = self.conv_block(1,         base_ch)     # -> (batch,  64, 120, 300)
+        self.enc2 = self.conv_block(base_ch,   base_ch*2)   # -> (batch, 128,  60, 150)
+        self.enc3 = self.conv_block(base_ch*2, base_ch*4)   # -> (batch, 256,  30,  75)
+        self.enc4 = self.conv_block(base_ch*4, base_ch*8)   # -> (batch, 512,  15,  37)
+
         # Bottleneck
-        self.bottleneck = self.conv_block(base_ch*8, base_ch*16) #512, 1024
+        self.bottleneck = self.conv_block(base_ch*8,   base_ch*16)  # -> (batch,1024,   7,  18)
         # Decoder
-        self.up4 = nn.ConvTranspose2d(base_ch*16, base_ch*8, kernel_size=2, stride=2)
+        self.up4  = nn.ConvTranspose2d(base_ch*16, base_ch*8, kernel_size=2, stride=2, output_padding=(1,1))  # -> (batch, 512,  15,  37)
         self.dec4 = self.conv_block(base_ch*16, base_ch*8)
-        self.up3 = nn.ConvTranspose2d(base_ch*8, base_ch*4, kernel_size=2, stride=2)
+
+        self.up3  = nn.ConvTranspose2d(base_ch*8, base_ch*4, kernel_size=2, stride=2, output_padding=(0,1))  # -> (batch, 256,  30,  75)
         self.dec3 = self.conv_block(base_ch*8, base_ch*4)
-        self.up2 = nn.ConvTranspose2d(base_ch*4, base_ch*2, kernel_size=2, stride=2)
-        self.dec2 = self.conv_block(base_ch*4, base_ch*2)
-        self.up1 = nn.ConvTranspose2d(base_ch*2, base_ch, kernel_size=2, stride=2)
-        self.dec1 = self.conv_block(base_ch*2, base_ch)
-        # Final 1×1
+
+        self.up2  = nn.ConvTranspose2d(base_ch*4, base_ch*2, kernel_size=2, stride=2) # -> (batch, 128,  60, 150)
+        self.dec2 = self.conv_block(base_ch*4,  base_ch*2)
+
+        self.up1  = nn.ConvTranspose2d(base_ch*2, base_ch, kernel_size=2, stride=2) # -> (batch,  64, 120, 300)
+        self.dec1 = self.conv_block(base_ch*2,  base_ch)
+
+        # Final 1×1 conv
         self.final = nn.Conv2d(base_ch, num_classes, kernel_size=1)
 
     def conv_block(self, in_ch, out_ch):
@@ -46,8 +51,6 @@ class UNet(nn.Module):
         b = self.bottleneck(p4)
         # Decoder
         d4 = self.up4(b)
-        print(d4.shape) # (batch_size, channels, image height, image width)
-        print(e4.shape)
         d4 = torch.cat([d4, e4], dim=1)
         d4 = self.dec4(d4)
         d3 = self.up3(d4)
