@@ -1,0 +1,57 @@
+/var/spool/slurmd/job16761375/slurm_script: line 10: cd: dlp/seb/: No such file or directory
+Lmod has detected the following error: The following module(s) are unknown:
+"PyTorch-bundle/2.1.2-foss-2023a-CUDA-12.1.1"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "PyTorch-bundle/2.1.2-foss-2023a-CUDA-12.1.1"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+slurmstepd: error: *** JOB 16761375 ON v100v2gpu18 CANCELLED AT 2025-04-22T19:04:21 ***
+slurmstepd: error: *** STEP 16761375.0 ON v100v2gpu18 CANCELLED AT 2025-04-22T19:04:21 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+
+###############################################################################
+Hábrók Cluster
+Job 16761375 for user s6019595
+Finished at: Tue Apr 22 19:04:29 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 16761375
+Name                           : dss
+User                           : s6019595
+Partition                      : gpushort
+Nodes                          : v100v2gpu18
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : CANCELLED by user  
+Submit                         : 2025-04-22T17:52:13
+Start                          : 2025-04-22T17:52:14
+End                            : 2025-04-22T19:04:24
+Reserved walltime              : 04:00:00
+Used walltime                  : 01:12:10
+Used CPU time                  : 01:22:28 (Efficiency: 14.28%)
+% User (Computation)           : 98.06%
+% System (I/O)                 :  1.95%
+Total memory reserved          : 32G
+Maximum memory used            : 23.19G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 93%
+Max GPU memory used            : 20.18G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################
