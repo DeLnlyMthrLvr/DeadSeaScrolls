@@ -1,5 +1,4 @@
 import sys
-sys.path.append("..")
 from unet import UNet
 import torch.nn as nn
 import torch
@@ -7,7 +6,6 @@ from torch.utils.data import Dataset, DataLoader
 from synthetic import DataGenerator, SynthSettings
 from torchsummary import summary
 import numpy as np
-import tqdm
 from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 import os
@@ -33,7 +31,7 @@ class CustomDataset(Dataset):
     
     def __getitem__(self, index):
         
-        return torch.tensor(self.scrolls[index], dtype=torch.float).unsqueeze(0), torch.tensor(self.masks[index], dtype=torch.float32)
+        return torch.tensor(self.scrolls[index], dtype=torch.float).unsqueeze(0), torch.tensor(self.masks[index], dtype=torch.float32) # / 255
 
 def train(model, val_masks, val_scrolls, masks, scrolls):
 
@@ -52,6 +50,13 @@ def train(model, val_masks, val_scrolls, masks, scrolls):
         segmentation_masks = model(batch_scrolls)             
         loss = loss_function(segmentation_masks, batch_masks)
         loss.backward()
+        total_norm = 0
+        for p in model.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+        print("Grad norm:", total_norm ** 0.5)
+
         optimizer.step()
         optimizer.zero_grad()
         track_loss.append(loss.item())
@@ -74,21 +79,22 @@ if __name__ == "__main__":
     model = UNet(num_classes=27).to(device)
     summary(model,(1,120,300))
     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Starting Training")
-    for epoch in tqdm.tqdm(range(10), "Cooking"):
-        print(f"GPU Memory Used: {torch.cuda.memory_allocated() / 1024**2:.2f} MB")
-        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Generating batch number {epoch}")
-        tokens, masks, scrolls = generator.generate_ngram_scrolls(256) #256 #Shapes: tokens(8000,150) , masks(8000, 27, H, W), scrolls(8000, 1, H, W)
-        val_tokens, val_masks, val_scrolls = generator.generate_ngram_scrolls(64) #64
-        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Data Generated")
-       
+    epoch = 0
+    while True:
+        #print(f"GPU Memory Used: {torch.cuda.memory_allocated() / 1024**2:.2f} MB")
+        #print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Generating batch number {epoch}")
+        tokens, masks, scrolls = generator.generate_ngram_scrolls(1_000) #256 #Shapes: tokens(8000,150) , masks(8000, 27, H, W), scrolls(8000, 1, H, W)
+        val_tokens, val_masks, val_scrolls = generator.generate_ngram_scrolls(200) #64
+        #print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Data Generated")
+        
         train_loss, val_loss = train(model=model, 
-              val_masks=val_masks, 
-              val_scrolls=val_scrolls,
-              masks=masks, 
-              scrolls=scrolls)
-       
+                val_masks=val_masks, 
+                val_scrolls=val_scrolls,
+                masks=masks, 
+                scrolls=scrolls)
+        
         print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Epoch trainig loss: {np.mean(train_loss)}, Epoch validation loss: {np.mean(val_loss)}")    
-       
+        
         writer.add_scalar("Loss/Train", train_loss, epoch)
         writer.add_scalar("Loss/Validation", val_loss, epoch)
 
@@ -104,4 +110,5 @@ if __name__ == "__main__":
             best_val_loss = val_loss
             best_model_path = os.path.join(checkpoint_dir, "best_model.pth")
             torch.save(model.state_dict(), best_model_path)
-            print(f"Saved new best model at epoch {epoch} with val_loss {val_loss:.4f}")
+            #print(f"Saved new best model at epoch {epoch} with val_loss {val_loss:.4f}")
+        epoch += 1
