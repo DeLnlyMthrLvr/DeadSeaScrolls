@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 sea/
-seb/checkpoints/*
+
 # C extensions
 *.so
 
@@ -178,3 +178,6 @@ cython_debug/
 #Seb
 /seb/SnakePract/*
 /seb/runs/*
+seb/checkpoints/*
+seb/checkpoints_line/*
+seb/runs_line/*
