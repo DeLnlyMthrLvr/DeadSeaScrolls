@@ -10,10 +10,7 @@ from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 import os
 
-TARGET_H, TARGET_W = 80, 200  
-from datetime import datetime
-
-run_name = f"unet_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+run_name = f"unet_{datetime.now().strftime('%Y/%m/%d_%H:%M:%S')}"
 checkpoint_dir = f"checkpoints/{run_name}/"
 os.makedirs(checkpoint_dir, exist_ok=True)
 
