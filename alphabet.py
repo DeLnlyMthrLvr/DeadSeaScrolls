@@ -77,14 +77,14 @@ char_token = {
     A.Space: 27
 }
 
-def alphabet_path():
-    return Path(__file__).parent / "data" / "alphabet"
+def alphabet_path(cropped: bool = True):
+    return Path(__file__).parent / "data" / ("alphabet_cropped" if cropped else "alphabet")
 
-def load_alphabet() -> dict[str, list[np.ndarray]]:
+def load_alphabet(cropped: bool = True, include_paths: bool = False) -> dict[str, list[np.ndarray]]:
 
     results = dict()
 
-    for ent in alphabet_path().iterdir():
+    for ent in alphabet_path(cropped).iterdir():
         if not ent.is_dir():
             continue
 
@@ -102,7 +102,10 @@ def load_alphabet() -> dict[str, list[np.ndarray]]:
             img = Image.open(ent_image).convert("L")
             img_array = np.array(img)
 
-            images.append(img_array)
+            if include_paths:
+                images.append((img_array, ent_image))
+            else:
+                images.append(img_array)
 
         results[name] = images
 

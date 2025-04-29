@@ -24,6 +24,7 @@ class SynthSettings:
     margins: tuple[int, int] = (40, 40)
     allowed_portion_in_margin: float = 0.3
     line_space: int = 10
+    line_seg_offset: int = 5
 
     def __post_init__(self):
         self.downscale_size = (int(self.image_size[0] * self.downscale_factor), int(self.image_size[1] * self.downscale_factor))
@@ -35,6 +36,7 @@ class Sample:
     tokens: list[int]
     image: np.ndarray
     segmentation: np.ndarray
+    line: np.ndarray
 
 def space_image():
     return np.full((40, 30), 255, dtype=np.uint8)
@@ -54,6 +56,7 @@ def _create_image(
     apim = settings.allowed_portion_in_margin
     leak_vertical, leak_horizontal = int(margin_vertical * apim), int(margin_horizontal * apim)
     max_char_height_per_row = 0
+    line_seg_offset = settings.line_seg_offset
 
     start_x = image_size[1] - margin_horizontal
     cur_x = start_x
@@ -62,6 +65,8 @@ def _create_image(
     # Init images
     canvas = np.full((image_size[0], image_size[1]), 255, dtype=np.uint8)
     segmentation = np.full((len(char_token) - 1, image_size[0], image_size[1]), 0, dtype=np.uint8)
+    line = np.full((image_size[0], image_size[1]), 0, dtype=np.uint8)
+
 
     iterator = list(zip(images, char_tokens))
 
@@ -101,6 +106,7 @@ def _create_image(
             segmentation[token, cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
 
         canvas[cur_y:bottom, new_x:cur_x][mask] = letter_img[mask]
+        line[cur_y + line_seg_offset:bottom - line_seg_offset, new_x - 2:cur_x + 2] = 1
 
         cur_x = cur_x - int(w * settings.spacing_multiplier)
         max_char_height_per_row = max(max_char_height_per_row, h)
@@ -120,11 +126,14 @@ def _create_image(
             res_seg[i_seg, ...] = cv2.resize(segmentation[i_seg, ...], (sd_width, sd_height), interpolation=cv2.INTER_AREA)
         segmentation = res_seg
 
+        line = cv2.resize(line, (sd_width, sd_height), interpolation=cv2.INTER_AREA)
+
 
     return Sample(
         tokens=used_tokens,
         image=canvas,
-        segmentation=segmentation
+        segmentation=segmentation,
+        line=line
     )
 
 def create_alphabet_image(
@@ -155,6 +164,7 @@ def create_alphabet_image(
 CharTokens = np.ndarray # (n, max_sequence_length)
 SegmentationMasks = np.ndarray # (n, char_chanels, height, width)
 ScrollImages = np.ndarray # (n, height, width)
+LineMasks = np.ndarray # ()
 
 class DataGenerator:
 
@@ -171,11 +181,12 @@ class DataGenerator:
         self.gen_ngrams = int((max_sequence_length // MEAN_NGRAM_CHAR) + 10)
         self.bible = BibleTexts(max_sequence_length)
 
-    def generate_ngram_scrolls(self, N: int = 1_000) -> tuple[CharTokens, SegmentationMasks, ScrollImages]:
+    def generate_ngram_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[CharTokens, SegmentationMasks, ScrollImages, LineMasks]:
 
         batch_char_tokens = []
         batch_seg_masks = []
         batch_scrolls = []
+        batch_lines = []
 
         for _ in tqdm.tqdm(range(N), total=N, disable=True):
             ngrams, _ = sample_ngrams(self.gen_ngrams, self.ngrams, self.ngram_frequencies, self.ngram_tokens)
@@ -207,18 +218,27 @@ class DataGenerator:
 
             tokens = tokens + [-1] * remaining
 
+            if skip_char_seg:
+                batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
+
             batch_char_tokens.append(np.array(tokens, dtype=np.int8)[np.newaxis, ...])
-            batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
             batch_scrolls.append(sample.image[np.newaxis, ...])
+            batch_lines.append(sample.line[np.newaxis, ...])
 
-        return np.concat(batch_char_tokens, axis=0), np.concat(batch_seg_masks, axis=0), np.concat(batch_scrolls, axis=0)
+        return (
+            np.concat(batch_char_tokens, axis=0),
+            np.concat(batch_seg_masks, axis=0),
+            np.concat(batch_scrolls, axis=0),
+            np.concat(batch_lines, axis=0)
+        )
 
 
-    def generate_passages_scrolls(self, N: int = 1_000) -> tuple[CharTokens, SegmentationMasks, ScrollImages]:
+    def generate_passages_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[CharTokens, SegmentationMasks, ScrollImages]:
 
         batch_char_tokens = []
         batch_seg_masks = []
         batch_scrolls = []
+        batch_lines = []
 
         for passage in self.bible.sample_passages(N):
 
@@ -234,32 +254,80 @@ class DataGenerator:
             assert remaining >= 0
             tokens = tokens + [-1] * remaining
 
+            if skip_char_seg:
+                batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
+
             batch_char_tokens.append(np.array(tokens, dtype=np.int8)[np.newaxis, ...])
-            batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
             batch_scrolls.append(sample.image[np.newaxis, ...])
+            batch_lines.append(sample.line[np.newaxis, ...])
 
-        return np.concat(batch_char_tokens, axis=0), np.concat(batch_seg_masks, axis=0), np.concat(batch_scrolls, axis=0)
+        return (
+            np.concat(batch_char_tokens, axis=0),
+            np.concat(batch_seg_masks, axis=0),
+            np.concat(batch_scrolls, axis=0),
+            np.concat(batch_lines, axis=0)
+        )
 
+
+def extract_lines_cc(
+        img: np.ndarray,
+        binary_mask: np.ndarray,
+        min_area: int = 500,
+        inflate: int = 6
+    ) -> list[np.ndarray]:
+
+    mask8 = (binary_mask > 0).astype(np.uint8) * 255
+
+    n_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+        mask8, connectivity=8)
+
+    h, w = binary_mask.shape
+    lines = []
+    for lab in range(1, n_labels):
+        x, y, bw, bh, area = stats[lab]
+        if area < min_area:
+            continue
+
+        x0 = max(x - inflate, 0)
+        y0 = max(y - inflate, 0)
+        x1 = min(x + bw + inflate, w)
+        y1 = min(y + bh + inflate, h)
+
+        crop = img[y0:y1, x0:x1].copy()
+        lines.append(crop)
+
+    return lines
 
 if __name__ == "__main__":
 
     from matplotlib import pyplot as plt
 
-    generator = DataGenerator(settings=SynthSettings(downscale_factor=0.3))
+    generator = DataGenerator(settings=SynthSettings(downscale_factor=1))
     noise = Noise(generator.settings.downscale_size)
 
-    tokens, seg, scrolls = generator.generate_ngram_scrolls(10)
+    tokens, seg, scrolls, lines = generator.generate_passages_scrolls(1)
+    # noise.create_masks(2)
+    # dmgd = noise.damage(scrolls, strength=0.3)
 
-    noise.create_masks(2)
-    dmgd = noise.damage(scrolls, strength=0.3)
-
-    for i in range(dmgd.shape[0]):
+    for i in range(scrolls.shape[0]):
         fig, ax = plt.subplots(1, 2)
 
         ax[0].imshow(scrolls[i], cmap="binary")
-        ax[1].imshow(dmgd[i], cmap="binary")
+        ax[1].imshow(lines[i], cmap="binary_r")
 
         fig.tight_layout()
+
+        img_lines = extract_lines_cc(scrolls[i], lines[i])
+
+        fig, axs = plt.subplots(len(img_lines), 1)
+
+        if not isinstance(axs, np.ndarray):
+            axs = np.array([axs], dtype=object)
+
+        for ax, img_line in zip(axs.ravel(), img_lines, strict=True):
+            ax.imshow(img_line, cmap="binary")
+
+
 
 
 
@@ -277,26 +345,6 @@ if __name__ == "__main__":
 
     #     figs.append(fig)
     #     axs_all.append(axs)
-
-
-    # num_classes = sample.segmentation.shape[0]
-    # colors = [
-    #     tuple(int(c * 255) for c in colorsys.hsv_to_rgb(i / num_classes, 1.0, 1.0))
-    #     for i in range(num_classes)
-    # ]
-
-    # overlay = cv2.cvtColor(sample.image, cv2.COLOR_GRAY2BGR)
-    # for token, color in zip(range(num_classes), colors):
-    #     mask = sample.segmentation[token].astype(bool)
-    #     for c in range(3):
-    #         overlay[..., c][mask] = color[c]
-
-    # blended = overlay
-
-    # fig, ax = plt.subplots(figsize=(12, 6))
-    # ax.imshow(blended)
-    # ax.set_title("Segmentation Overlay")
-    # ax.axis('off')
 
 
     plt.show()
