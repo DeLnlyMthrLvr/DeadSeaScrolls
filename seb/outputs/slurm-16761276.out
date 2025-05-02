@@ -1,0 +1,119 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) 2023.01   2) StdEnv
+/var/spool/slurmd/job16761276/slurm_script: line 10: cd: dlp/seb/: No such file or directory
+----------------------------------------------------------------
+        Layer (type)               Output Shape         Param #
+================================================================
+            Conv2d-1         [-1, 64, 120, 300]             640
+         LeakyReLU-2         [-1, 64, 120, 300]               0
+            Conv2d-3         [-1, 64, 120, 300]          36,928
+         LeakyReLU-4         [-1, 64, 120, 300]               0
+            Conv2d-5         [-1, 128, 60, 150]          73,856
+         LeakyReLU-6         [-1, 128, 60, 150]               0
+            Conv2d-7         [-1, 128, 60, 150]         147,584
+         LeakyReLU-8         [-1, 128, 60, 150]               0
+            Conv2d-9          [-1, 256, 30, 75]         295,168
+        LeakyReLU-10          [-1, 256, 30, 75]               0
+           Conv2d-11          [-1, 256, 30, 75]         590,080
+        LeakyReLU-12          [-1, 256, 30, 75]               0
+           Conv2d-13          [-1, 512, 15, 37]       1,180,160
+        LeakyReLU-14          [-1, 512, 15, 37]               0
+           Conv2d-15          [-1, 512, 15, 37]       2,359,808
+        LeakyReLU-16          [-1, 512, 15, 37]               0
+           Conv2d-17          [-1, 1024, 7, 18]       4,719,616
+        LeakyReLU-18          [-1, 1024, 7, 18]               0
+           Conv2d-19          [-1, 1024, 7, 18]       9,438,208
+        LeakyReLU-20          [-1, 1024, 7, 18]               0
+  ConvTranspose2d-21          [-1, 512, 15, 37]       2,097,664
+           Conv2d-22          [-1, 512, 15, 37]       4,719,104
+        LeakyReLU-23          [-1, 512, 15, 37]               0
+           Conv2d-24          [-1, 512, 15, 37]       2,359,808
+        LeakyReLU-25          [-1, 512, 15, 37]               0
+  ConvTranspose2d-26          [-1, 256, 30, 75]         524,544
+           Conv2d-27          [-1, 256, 30, 75]       1,179,904
+        LeakyReLU-28          [-1, 256, 30, 75]               0
+           Conv2d-29          [-1, 256, 30, 75]         590,080
+        LeakyReLU-30          [-1, 256, 30, 75]               0
+  ConvTranspose2d-31         [-1, 128, 60, 150]         131,200
+           Conv2d-32         [-1, 128, 60, 150]         295,040
+        LeakyReLU-33         [-1, 128, 60, 150]               0
+           Conv2d-34         [-1, 128, 60, 150]         147,584
+        LeakyReLU-35         [-1, 128, 60, 150]               0
+  ConvTranspose2d-36         [-1, 64, 120, 300]          32,832
+           Conv2d-37         [-1, 64, 120, 300]          73,792
+        LeakyReLU-38         [-1, 64, 120, 300]               0
+           Conv2d-39         [-1, 64, 120, 300]          36,928
+        LeakyReLU-40         [-1, 64, 120, 300]               0
+           Conv2d-41         [-1, 27, 120, 300]           1,755
+================================================================
+Total params: 31,032,283
+Trainable params: 31,032,283
+Non-trainable params: 0
+----------------------------------------------------------------
+Input size (MB): 0.14
+Forward/backward pass size (MB): 307.72
+Params size (MB): 118.38
+Estimated Total Size (MB): 426.24
+----------------------------------------------------------------
+2025-04-22 17:46:51 - Starting Training
+GPU Memory Used: 120.26 MB
+2025-04-22 17:46:51 - Generating batch number 0
+Traceback (most recent call last):
+  File "/home4/s6019595/dlp/train.py", line 80, in <module>
+    tokens, masks, scrolls = generator.generate_ngram_scrolls(10_000) #256 #Shapes: tokens(8000,150) , masks(8000, 27, H, W), scrolls(8000, 1, H, W)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home4/s6019595/dlp/synthetic.py", line 214, in generate_ngram_scrolls
+    return np.concat(batch_char_tokens, axis=0), np.concat(batch_seg_masks, axis=0), np.concat(batch_scrolls, axis=0)
+           ^^^^^^^^^
+  File "/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/intel/skylake_avx512/software/SciPy-bundle/2023.07-gfbf-2023a/lib/python3.11/site-packages/numpy/__init__.py", line 322, in __getattr__
+    raise AttributeError("module {!r} has no attribute "
+AttributeError: module 'numpy' has no attribute 'concat'. Did you mean: 'compat'?
+srun: error: v100v2gpu18: task 0: Exited with exit code 1
+srun: Terminating StepId=16761276.0
+
+###############################################################################
+Hábrók Cluster
+Job 16761276 for user s6019595
+Finished at: Tue Apr 22 17:50:22 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 16761276
+Name                           : dss
+User                           : s6019595
+Partition                      : gpushort
+Nodes                          : v100v2gpu18
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : FAILED  
+Submit                         : 2025-04-22T17:46:28
+Start                          : 2025-04-22T17:46:29
+End                            : 2025-04-22T17:50:18
+Reserved walltime              : 04:00:00
+Used walltime                  : 00:03:49
+Used CPU time                  : 00:03:40 (Efficiency: 12.00%)
+% User (Computation)           : 96.30%
+% System (I/O)                 :  3.70%
+Total memory reserved          : 32G
+Maximum memory used            : 9.49G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 0%
+Max GPU memory used            : 760.00M
+Hints and tips      :
+ 1) You are running on a GPU node without actually using the GPU, please fix this.
+ *) For more information on these issues see:
+    https://wiki.hpc.rug.nl/habrok/additional_information/job_hints
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################
