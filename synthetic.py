@@ -215,7 +215,7 @@ class DataGenerator:
                 self.settings
             )
 
-            if skip_char_seg:
+            if not skip_char_seg:
                 batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
 
             batch_char_tokens.append(sample.tokens)
@@ -224,7 +224,7 @@ class DataGenerator:
 
         return (
             batch_char_tokens,
-            np.concat(batch_seg_masks, axis=0),
+            np.empty((N, 0)) if skip_char_seg else np.concat(batch_seg_masks, axis=0),
             np.concat(batch_scrolls, axis=0),
             np.concat(batch_lines, axis=0)
         )
@@ -245,7 +245,7 @@ class DataGenerator:
                 self.settings
             )
 
-            if skip_char_seg:
+            if not skip_char_seg:
                 batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
 
             batch_char_tokens.append(sample.tokens)
@@ -254,7 +254,7 @@ class DataGenerator:
 
         return (
             batch_char_tokens,
-            np.concat(batch_seg_masks, axis=0),
+            np.empty((N, 0)) if skip_char_seg else np.concat(batch_seg_masks, axis=0),
             np.concat(batch_scrolls, axis=0),
             np.concat(batch_lines, axis=0)
         )
@@ -296,33 +296,33 @@ if __name__ == "__main__":
     generator = DataGenerator(settings=SynthSettings(downscale_factor=1))
     noise = Noise(generator.settings.downscale_size)
 
-    tokens, seg, scrolls, lines = generator.generate_passages_scrolls(5)
+    tokens, seg, scrolls, lines = generator.generate_passages_scrolls(4)
     # noise.create_masks(2)
     # dmgd = noise.damage(scrolls, strength=0.3)
 
-    print("Scrolls", len(tokens))
-    print("Lines", len(tokens[0]), len(tokens[1]))
-    print("Chars", len(tokens[0][0]), len(tokens[1][1]))
+    # print("Scrolls", len(tokens))
+    # print("Lines", len(tokens[0]), len(tokens[1]))
+    # print("Chars", len(tokens[0][0]), len(tokens[1][1]))
 
-    # for i in range(scrolls.shape[0]):
-    #     fig, ax = plt.subplots(1, 2)
+    print(seg.shape)
 
-    #     ax[0].imshow(scrolls[i], cmap="binary")
-    #     ax[1].imshow(lines[i], cmap="binary_r")
+    for i in range(scrolls.shape[0]):
+        fig, ax = plt.subplots(1, 2)
 
-    #     fig.tight_layout()
+        ax[0].imshow(scrolls[i], cmap="binary")
+        ax[1].imshow(lines[i], cmap="binary_r")
 
-    #     img_lines = extract_lines_cc(scrolls[i], lines[i])
+        fig.tight_layout()
 
-    #     fig, axs = plt.subplots(len(img_lines), 1)
+        img_lines = extract_lines_cc(scrolls[i], lines[i])
 
-    #     if not isinstance(axs, np.ndarray):
-    #         axs = np.array([axs], dtype=object)
+        fig, axs = plt.subplots(len(img_lines), 1)
 
-    #     for ax, img_line in zip(axs.ravel(), img_lines, strict=True):
-    #         ax.imshow(img_line, cmap="binary")
+        if not isinstance(axs, np.ndarray):
+            axs = np.array([axs], dtype=object)
 
-
+        for ax, img_line in zip(axs.ravel(), img_lines, strict=True):
+            ax.imshow(img_line, cmap="binary")
 
 
 
