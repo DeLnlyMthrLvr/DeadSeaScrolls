@@ -7,7 +7,7 @@ import colorsys
 
 import cv2
 import tqdm
-from alphabet import A, load_alphabet, char_token, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR
+from alphabet import A, load_alphabet, char_token, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR, MEAN_CHAR_HEIGHT, MEAN_CHAR_WIDTH
 from noise import Noise
 from bible import BibleTexts
 
@@ -33,7 +33,7 @@ class SynthSettings:
 
 @dataclass
 class Sample:
-    tokens: list[int]
+    tokens: list[list[int]]
     image: np.ndarray
     segmentation: np.ndarray
     line: np.ndarray
@@ -68,6 +68,8 @@ def _create_image(
 
 
     iterator = list(zip(images, char_tokens))
+    used_tokens = []
+    line_tokens = []
 
     consumed_letters = 0
     for letter_img, token in iterator:
@@ -84,6 +86,9 @@ def _create_image(
             cur_y += max_char_height_per_row + settings.line_space
             cur_x = start_x
             max_char_height_per_row = 0
+            used_tokens.append(line_tokens)
+            line_tokens = []
+
 
         new_x = cur_x - w
         mask = letter_img < 200
@@ -94,21 +99,22 @@ def _create_image(
 
         if out_of_bounds or out_of_leak:
             # Not enough space
+            if len(line_tokens) > 0:
+                used_tokens.append(line_tokens)
+                line_tokens = []
             break
 
         consumed_letters += 1
 
         if token != space_token:
             segmentation[token, cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
+            line_tokens.append(token)
 
         canvas[cur_y:bottom, new_x:cur_x][mask] = letter_img[mask]
         line[cur_y + line_seg_offset:bottom - line_seg_offset, new_x - 2:cur_x + 2] = 1
 
         cur_x = cur_x - int(w * settings.spacing_multiplier)
         max_char_height_per_row = max(max_char_height_per_row, h)
-
-    used_tokens = char_tokens[:consumed_letters]
-    used_tokens = [token for token in used_tokens if (token != space_token)]
 
     if settings.downscale_factor < 1.0:
         sd_height, sd_width = settings.downscale_size
@@ -154,7 +160,7 @@ def create_alphabet_image(
 
 
 
-CharTokens = np.ndarray # (n, max_sequence_length)
+TokensPerLine = list[list[list[int]]] # (n, max_sequence_length)
 SegmentationMasks = np.ndarray # (n, char_chanels, height, width)
 ScrollImages = np.ndarray # (n, height, width)
 LineMasks = np.ndarray # ()
@@ -163,18 +169,23 @@ class DataGenerator:
 
     def __init__(
         self,
-        max_sequence_length: int = 150,
         settings: SynthSettings | None = None
     ):
+
+        h, w = settings.image_size
+        tpl = w / MEAN_CHAR_WIDTH
+        tpc = h / MEAN_CHAR_HEIGHT
+
+        tps = round(tpl * tpc)
 
         self.alphabet = load_alphabet()
         self.ngrams, self.ngram_frequencies, self.ngram_tokens = load_n_grams()
         self.settings = SynthSettings() if settings is None else settings
-        self.max_sequence_length = max_sequence_length
-        self.gen_ngrams = int((max_sequence_length // MEAN_NGRAM_CHAR) + 10)
-        self.bible = BibleTexts(max_sequence_length)
+        self.max_sequence_length = tps + 3
+        self.gen_ngrams = int((self.max_sequence_length // MEAN_NGRAM_CHAR) + 10)
+        self.bible = BibleTexts(self.max_sequence_length)
 
-    def generate_ngram_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[CharTokens, SegmentationMasks, ScrollImages, LineMasks]:
+    def generate_ngram_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages, LineMasks]:
 
         batch_char_tokens = []
         batch_seg_masks = []
@@ -204,29 +215,22 @@ class DataGenerator:
                 self.settings
             )
 
-            tokens = sample.tokens
-            remaining = self.max_sequence_length - len(tokens)
-
-            assert remaining >= 0
-
-            tokens = tokens + [-1] * remaining
-
             if skip_char_seg:
                 batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
 
-            batch_char_tokens.append(np.array(tokens, dtype=np.int8)[np.newaxis, ...])
+            batch_char_tokens.append(sample.tokens)
             batch_scrolls.append(sample.image[np.newaxis, ...])
             batch_lines.append(sample.line[np.newaxis, ...])
 
         return (
-            np.concat(batch_char_tokens, axis=0),
+            batch_char_tokens,
             np.concat(batch_seg_masks, axis=0),
             np.concat(batch_scrolls, axis=0),
             np.concat(batch_lines, axis=0)
         )
 
 
-    def generate_passages_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[CharTokens, SegmentationMasks, ScrollImages]:
+    def generate_passages_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages]:
 
         batch_char_tokens = []
         batch_seg_masks = []
@@ -241,21 +245,15 @@ class DataGenerator:
                 self.settings
             )
 
-            tokens = sample.tokens
-            remaining = self.max_sequence_length - len(tokens)
-
-            assert remaining >= 0
-            tokens = tokens + [-1] * remaining
-
             if skip_char_seg:
                 batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
 
-            batch_char_tokens.append(np.array(tokens, dtype=np.int8)[np.newaxis, ...])
+            batch_char_tokens.append(sample.tokens)
             batch_scrolls.append(sample.image[np.newaxis, ...])
             batch_lines.append(sample.line[np.newaxis, ...])
 
         return (
-            np.concat(batch_char_tokens, axis=0),
+            batch_char_tokens,
             np.concat(batch_seg_masks, axis=0),
             np.concat(batch_scrolls, axis=0),
             np.concat(batch_lines, axis=0)
@@ -298,27 +296,31 @@ if __name__ == "__main__":
     generator = DataGenerator(settings=SynthSettings(downscale_factor=1))
     noise = Noise(generator.settings.downscale_size)
 
-    tokens, seg, scrolls, lines = generator.generate_passages_scrolls(1)
+    tokens, seg, scrolls, lines = generator.generate_passages_scrolls(5)
     # noise.create_masks(2)
     # dmgd = noise.damage(scrolls, strength=0.3)
 
-    for i in range(scrolls.shape[0]):
-        fig, ax = plt.subplots(1, 2)
+    print("Scrolls", len(tokens))
+    print("Lines", len(tokens[0]), len(tokens[1]))
+    print("Chars", len(tokens[0][0]), len(tokens[1][1]))
 
-        ax[0].imshow(scrolls[i], cmap="binary")
-        ax[1].imshow(lines[i], cmap="binary_r")
+    # for i in range(scrolls.shape[0]):
+    #     fig, ax = plt.subplots(1, 2)
 
-        fig.tight_layout()
+    #     ax[0].imshow(scrolls[i], cmap="binary")
+    #     ax[1].imshow(lines[i], cmap="binary_r")
 
-        img_lines = extract_lines_cc(scrolls[i], lines[i])
+    #     fig.tight_layout()
 
-        fig, axs = plt.subplots(len(img_lines), 1)
+    #     img_lines = extract_lines_cc(scrolls[i], lines[i])
 
-        if not isinstance(axs, np.ndarray):
-            axs = np.array([axs], dtype=object)
+    #     fig, axs = plt.subplots(len(img_lines), 1)
 
-        for ax, img_line in zip(axs.ravel(), img_lines, strict=True):
-            ax.imshow(img_line, cmap="binary")
+    #     if not isinstance(axs, np.ndarray):
+    #         axs = np.array([axs], dtype=object)
+
+    #     for ax, img_line in zip(axs.ravel(), img_lines, strict=True):
+    #         ax.imshow(img_line, cmap="binary")
 
 
 
