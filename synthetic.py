@@ -44,8 +44,7 @@ def space_image():
 def _create_image(
         images: list[np.ndarray],
         char_tokens: list[int],
-        settings: SynthSettings,
-        reverse: bool = True
+        settings: SynthSettings
     ) -> Sample:
 
     # Init sizes
@@ -69,9 +68,6 @@ def _create_image(
 
 
     iterator = list(zip(images, char_tokens))
-
-    if reverse:
-        iterator = reversed(iterator)
 
     consumed_letters = 0
     for letter_img, token in iterator:
@@ -111,11 +107,8 @@ def _create_image(
         cur_x = cur_x - int(w * settings.spacing_multiplier)
         max_char_height_per_row = max(max_char_height_per_row, h)
 
-
-    if reverse:
-        used_tokens = char_tokens[-consumed_letters:]
-    else:
-        used_tokens = char_tokens[:consumed_letters]
+    used_tokens = char_tokens[:consumed_letters]
+    used_tokens = [token for token in used_tokens if (token != space_token)]
 
     if settings.downscale_factor < 1.0:
         sd_height, sd_width = settings.downscale_size
