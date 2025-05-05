@@ -1,5 +1,6 @@
 
 
+import random
 import numpy as np
 
 
@@ -51,6 +52,79 @@ def generate_perlin_noise_2d(shape, res, octaves=1, persistence=0.5, lacunarity=
         frequency *= lacunarity
 
     return noise / max_amp
+
+
+import numpy as np
+import cv2
+
+def cutout_noise(
+        height: int,
+        width: int,
+        num_shapes: tuple[int, int] = (1, 4),
+        radius: tuple[int, int] = (50, 150)
+    ):
+    mask = np.zeros((height, width))
+
+    n_shapes = random.randint(num_shapes[0], num_shapes[1] - 1)
+
+    heights = np.random.randint(0, height, n_shapes)
+    widths = np.random.randint(0, width, n_shapes)
+    angles = np.random.random(n_shapes) * 360
+    axes = np.random.randint(radius[0], radius[1], (n_shapes, 2))
+
+    for i in range(n_shapes):
+        center = (widths[i], heights[i])
+        axis = axes[i, :]
+        angle = angles[i]
+        cv2.ellipse(mask, center, axis, angle, 0, 360, color=1, thickness=-1)
+
+    return mask > 0.5
+
+
+
+def warp_mask(
+        scroll: np.ndarray,
+        line_mask: np.ndarray,
+        warp_strength: float=8,
+        grid_size: int=200,
+        seed=None
+    ):
+
+    h, w = scroll.shape
+    rng = np.random.RandomState(seed)
+
+    # generate low-res random offsets
+    dx = rng.randn((h//grid_size)+2, (w//grid_size)+2).astype(np.float32) * warp_strength
+    dy = rng.randn((h//grid_size)+2, (w//grid_size)+2).astype(np.float32) * warp_strength
+
+    # upsample to full resolution
+    dx = cv2.resize(dx, (w, h), interpolation=cv2.INTER_CUBIC)
+    dy = cv2.resize(dy, (w, h), interpolation=cv2.INTER_CUBIC)
+
+    # build remap grid
+    x, y = np.meshgrid(np.arange(w), np.arange(h))
+    map_x = (x + dx).astype(np.float32)
+    map_y = (y + dy).astype(np.float32)
+
+    warped_scroll = cv2.remap(
+        scroll.astype(np.uint8),
+        map_x, map_y,
+        interpolation=cv2.INTER_NEAREST,
+        borderMode=cv2.BORDER_CONSTANT, borderValue=255
+    )
+
+    warped_line = cv2.remap(
+        line_mask.astype(np.uint8),
+        map_x, map_y,
+        interpolation=cv2.INTER_NEAREST,
+        borderMode=cv2.BORDER_CONSTANT, borderValue=0
+    )
+
+    warped_line_mask = warped_line > 0.5
+
+    return warped_scroll, warped_line_mask
+
+
 
 
 class Noise:

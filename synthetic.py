@@ -1,14 +1,12 @@
 
-from pathlib import Path
 from dataclasses import dataclass
 import numpy as np
 import random
-import colorsys
 
 import cv2
 import tqdm
 from alphabet import A, load_alphabet, char_token, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR, MEAN_CHAR_HEIGHT, MEAN_CHAR_WIDTH
-from noise import Noise
+from noise import Noise, cutout_noise, warp_mask
 from bible import BibleTexts
 
 space_token = char_token[A.Space]
@@ -17,7 +15,7 @@ space_token = char_token[A.Space]
 class SynthSettings:
 
     spacing_multiplier: float = 0.9
-    image_size: tuple[int, int] = (400, 1000)
+    image_size: tuple[int, int] = (676, 902)
     downscale_factor: float = 1
     downscale_size: tuple[int, int] = None
 
@@ -25,6 +23,12 @@ class SynthSettings:
     allowed_portion_in_margin: float = 0.3
     line_space: int = 10
     line_seg_offset: int = 5
+
+    cutout_noise: bool = False
+    cutout_noise_size: tuple[int, int] = (50, 150)
+
+    warp_noise: bool = False
+    warp_noise_strength: float = 8
 
     def __post_init__(self):
         self.downscale_size = (int(self.image_size[0] * self.downscale_factor), int(self.image_size[1] * self.downscale_factor))
@@ -67,14 +71,42 @@ def _create_image(
     line = np.full((image_size[0], image_size[1]), 0, dtype=np.uint8)
 
 
+    # Line data
+    line_max_x: float = -float("inf")
+    line_min_x: float = float("inf")
+    line_max_y: float = -float("inf")
+    line_min_y: float = float("inf")
+
+    cnoise = settings.cutout_noise
+    if cnoise:
+        cutout_mask = cutout_noise(*settings.image_size, radius=settings.cutout_noise_size)
+
     iterator = list(zip(images, char_tokens))
     used_tokens = []
     line_tokens = []
 
-    consumed_letters = 0
-    for letter_img, token in iterator:
+    def line_end():
+        nonlocal line_tokens, used_tokens, line_max_x, line_min_x, line_max_y, line_min_y
 
-        # letter_img = cv2.resize(letter_img, settings.letter_size)
+        if len(line_tokens) > 0:
+            used_tokens.append(line_tokens)
+            line_tokens = []
+
+            line[
+                int(line_min_y) + line_seg_offset : int(line_max_y) - line_seg_offset,
+                int(line_min_x) - 2: int(line_max_x) + 2
+            ] = 1
+
+            line_max_x = -float("inf")
+            line_min_x = float("inf")
+            line_max_y = -float("inf")
+            line_min_y = float("inf")
+
+    i = -1
+    while i < len(iterator):
+        i+= 1
+
+        letter_img, token = iterator[i]
 
         h, w = letter_img.shape[:2]
 
@@ -86,9 +118,7 @@ def _create_image(
             cur_y += max_char_height_per_row + settings.line_space
             cur_x = start_x
             max_char_height_per_row = 0
-            used_tokens.append(line_tokens)
-            line_tokens = []
-
+            line_end()
 
         new_x = cur_x - w
         mask = letter_img < 200
@@ -99,22 +129,44 @@ def _create_image(
 
         if out_of_bounds or out_of_leak:
             # Not enough space
-            if len(line_tokens) > 0:
-                used_tokens.append(line_tokens)
-                line_tokens = []
+            line_end()
             break
 
-        consumed_letters += 1
+        # Check if it collides with cutout mask
+        if cnoise and (token != space_token):
+            cmask = cutout_mask[cur_y:bottom, new_x:cur_x]
+            letter_mask = letter_img < 200
+            letter_pixels = letter_mask.sum()
 
+            assert letter_pixels > 0
+
+            p_collision = (letter_mask & cmask).astype(float).sum() / letter_pixels
+
+            if p_collision > 0.5:
+                # Try again further
+                cur_x -= int(w / 0.5)
+                i -= 1
+                continue
+
+
+        # Letter can be applied
         if token != space_token:
             segmentation[token, cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
             line_tokens.append(token)
 
         canvas[cur_y:bottom, new_x:cur_x][mask] = letter_img[mask]
-        line[cur_y + line_seg_offset:bottom - line_seg_offset, new_x - 2:cur_x + 2] = 1
+
+        line_min_y = min(cur_y, line_min_y)
+        line_min_x = min(new_x, line_min_x)
+        line_max_y = max(bottom, line_max_y)
+        line_max_x = max(cur_x, line_max_x)
+
 
         cur_x = cur_x - int(w * settings.spacing_multiplier)
         max_char_height_per_row = max(max_char_height_per_row, h)
+
+    if settings.warp_noise:
+        canvas, line = warp_mask(canvas, line, warp_strength=settings.warp_noise_strength)
 
     if settings.downscale_factor < 1.0:
         sd_height, sd_width = settings.downscale_size
@@ -126,7 +178,6 @@ def _create_image(
         segmentation = res_seg
 
         line = cv2.resize(line, (sd_width, sd_height), interpolation=cv2.INTER_AREA)
-
 
     return Sample(
         tokens=used_tokens,
@@ -169,7 +220,8 @@ class DataGenerator:
 
     def __init__(
         self,
-        settings: SynthSettings | None = None
+        settings: SynthSettings | None = None,
+        alphabet = None
     ):
 
         h, w = settings.image_size
@@ -178,7 +230,11 @@ class DataGenerator:
 
         tps = round(tpl * tpc)
 
-        self.alphabet = load_alphabet()
+        if alphabet is None:
+            self.alphabet = load_alphabet()
+        else:
+            self.alphabet = alphabet
+
         self.ngrams, self.ngram_frequencies, self.ngram_tokens = load_n_grams()
         self.settings = SynthSettings() if settings is None else settings
         self.max_sequence_length = tps + 3
@@ -296,7 +352,8 @@ if __name__ == "__main__":
     generator = DataGenerator(settings=SynthSettings(downscale_factor=1))
     noise = Noise(generator.settings.downscale_size)
 
-    tokens, seg, scrolls, lines = generator.generate_passages_scrolls(4)
+    tokens, seg, scrolls, lines = generator.generate_passages_scrolls(10, skip_char_seg=True)
+
     # noise.create_masks(2)
     # dmgd = noise.damage(scrolls, strength=0.3)
 
@@ -304,7 +361,6 @@ if __name__ == "__main__":
     # print("Lines", len(tokens[0]), len(tokens[1]))
     # print("Chars", len(tokens[0][0]), len(tokens[1][1]))
 
-    print(seg.shape)
 
     for i in range(scrolls.shape[0]):
         fig, ax = plt.subplots(1, 2)
