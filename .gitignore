@@ -175,6 +175,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+model_weights.pth
 #Seb
 /seb/SnakePract/*
 /seb/runs/*
