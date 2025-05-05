@@ -60,7 +60,7 @@ def train():
   
 
   
-  dataset = data_loader.ScrollLineDataset(tokenizer, image_size)
+  dataset = data_loader.ScrollLineDatasetIterable(tokenizer, image_size)
   dataloader = DataLoader(dataset, batch_size = 32, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
   
   train_ocr(model, dataloader, optimizer, criterion, device, bos_token_id, eos_token_id, num_epochs)
@@ -71,7 +71,7 @@ def train_ocr(model, dataloader, optimizer, criterion, device, bos_token_id, eos
     #for epoch in range(num_epochs):
     total_loss = 0
     count = 0
-    print_after_n_batches = 1000
+    print_after_n_batches = 13
     save_after_n_batches = 10_000
     for images, target_sequences in dataloader:
         if count > 0 and count % print_after_n_batches == 0:
@@ -97,7 +97,7 @@ def train_ocr(model, dataloader, optimizer, criterion, device, bos_token_id, eos
         optimizer.step()
 
         total_loss += loss.item()
-        print(loss.item())
+        #print(loss.item())
         count += 1
 
     #print(f"Epoch {epoch+1}/{num_epochs}, Loss: {total_loss:.4f}")

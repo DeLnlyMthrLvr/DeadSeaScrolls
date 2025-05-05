@@ -176,6 +176,7 @@ cython_debug/
 .pypirc
 
 model_weights.pth
+data/test_images_ocr/*
 #Seb
 /seb/SnakePract/*
 /seb/runs/*
