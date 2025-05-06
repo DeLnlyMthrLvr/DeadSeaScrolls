@@ -5,6 +5,7 @@ __pycache__/
 
 sea/
 /data/scrolls/*
+/linesegmentation/runs/*
 
 # C extensions
 *.so
