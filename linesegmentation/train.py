@@ -10,12 +10,11 @@ import torch
 from torch.optim import Optimizer
 from torch.utils.data import Dataset, DataLoader
 import tqdm
-
-from synthetic import DataGenerator, SynthSettings
+from noise_designer import load_batches
 from unet import UNet
-
+import random
 def create_experiment_folder(name: str = "run") -> Path:
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     folder = Path(__file__).parent  / "runs" / f"{timestamp}_{name}"
     folder.mkdir(parents=True, exist_ok=True)
     return folder
@@ -77,17 +76,20 @@ def train_epoch(
     return np.mean(track_loss), np.mean(val_track_loss)
 
 
-def _train(
-        generator: DataGenerator,
-        gen_batch_size: int = 2_500,
-        gen_batches: int = 50,
-        redo_batch: int = 1,
+def train_level(
+        pool: set,
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "unet"
+        experiment_name: str | None = "unet",
+        epochs: int = 200
+
     ):
-    _, _, val_scrolls, val_lines = generator.generate_passages_scrolls(N=200)
+    
+    level = random.choice(list(pool))
+    iterator = load_batches(level=level)
+    _, val_scrolls, val_lines = next(iterator)
+
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
 
     if experiment_folder is None and (experiment_name is not None):
@@ -101,64 +103,26 @@ def _train(
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
     criterion = nn.BCEWithLogitsLoss()
-    for epoch in range(gen_batches):
-        _, _, scrolls, lines = generator.generate_passages_scrolls(gen_batch_size)
-
-        train_data = LineSegmentationDataset(scrolls, lines)
-
-        for _ in range(redo_batch):
-            train_loss, val_losss = train_epoch(
-                model,
-                train_data,
-                val_data,
-                optimizer,
-                criterion
-            )
-
-            model.save(experiment_folder)
-            with open(experiment_folder / "loss.txt", "a") as f:
-                f.write(f"{train_loss:.4f},{val_losss:.4f}")
-
-            if verbose > 0:
-                print(f"Losss {train_loss:.4f}, {val_losss:.4f}")
-
+    
+    for _, train_scrolls, train_lines in iterator:
+        train_data = LineSegmentationDataset(train_scrolls, train_lines)
+        train_loss, val_losss = train_epoch(
+            model,
+            train_data,
+            val_data,
+            optimizer,
+            criterion
+        )
+        model.save(experiment_folder)
+        with open(experiment_folder / "loss.txt", "a") as f:
+            f.write(f"{train_loss:.4f},{val_losss:.4f}")
         if verbose > 0:
-            print("Noisel")
+            print(f"Losss {train_loss:.4f}, {val_losss:.4f}")
 
     return model, optimizer
 
-def train_noiseless(
-    gen_batch_size: int = 2_500,
-    gen_batches: int = 50,
-    redo_batch: int = 1,
-    model: UNet | None = None,
-    optimizer: Optimizer | None = None,
-    experiment_folder: Path | None = None,
-    experiment_name: str | None = "unet"
-):
-
-    gen_settings = SynthSettings(downscale_factor=0.35)
-    generator = DataGenerator(settings=gen_settings)
-
-    return _train(gen_batch_size, gen_batches, redo_batch, model, optimizer, experiment_folder, experiment_name, generator)
-
-
-def train_noiseless(
-    gen_batch_size: int = 2_500,
-    gen_batches: int = 50,
-    redo_batch: int = 1,
-    model: UNet | None = None,
-    optimizer: Optimizer | None = None,
-    experiment_folder: Path | None = None,
-    experiment_name: str | None = "unet"
-):
-
-    gen_settings = SynthSettings(downscale_factor=0.35)
-    generator = DataGenerator(settings=gen_settings)
-
-    return _train(gen_batch_size, gen_batches, redo_batch, model, optimizer, experiment_folder, experiment_name, generator)
-
-
-
 if __name__ == "__main__":
-    train_noiseless(redo_batch=2, gen_batch_size=500, gen_batches=10)
+    model, optimizer =  train_level(pool = {0})
+    while True:
+        train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer)
+
