@@ -25,7 +25,7 @@ class SynthSettings:
     line_seg_offset: int = 5
 
     cutout_noise: bool = False
-    cutout_noise_size: tuple[int, int] = (50, 150)
+    cutout_noise_size: int = 100
 
     warp_noise: bool = False
     warp_noise_strength: float = 8
@@ -286,7 +286,7 @@ class DataGenerator:
         )
 
 
-    def generate_passages_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages]:
+    def generate_passages_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages, LineMasks]:
 
         batch_char_tokens = []
         batch_seg_masks = []
