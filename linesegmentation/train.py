@@ -82,15 +82,12 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "unet",
-        epochs: int = 200
-
+        experiment_name: str | None = "unet"
     ):
 
     level = random.choice(list(pool))
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
-
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
 
     if experiment_folder is None and (experiment_name is not None):
