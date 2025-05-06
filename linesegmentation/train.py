@@ -13,8 +13,9 @@ import tqdm
 from noise_designer import load_batches
 from unet import UNet
 import random
+
 def create_experiment_folder(name: str = "run") -> Path:
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     folder = Path(__file__).parent  / "runs" / f"{timestamp}_{name}"
     folder.mkdir(parents=True, exist_ok=True)
     return folder
@@ -85,7 +86,7 @@ def train_level(
         epochs: int = 200
 
     ):
-    
+
     level = random.choice(list(pool))
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
@@ -103,7 +104,7 @@ def train_level(
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
     criterion = nn.BCEWithLogitsLoss()
-    
+
     for _, train_scrolls, train_lines in iterator:
         train_data = LineSegmentationDataset(train_scrolls, train_lines)
         train_loss, val_losss = train_epoch(
@@ -123,6 +124,6 @@ def train_level(
 
 if __name__ == "__main__":
     model, optimizer =  train_level(pool = {0})
-    while True:
+    for _ in range(100):
         train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer)
 

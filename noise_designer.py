@@ -231,16 +231,17 @@ def generate_data(
 #             ...
 
 def load_batches(level: int):
-    level_path = Path() / f"level_{level}"
+    level_path = Path(__file__).parent / "data" / "scrolls" / f"level_{level}"
     chunks = sorted(
         level_path.glob("chunk_*.npz"),
         key=lambda p: int(p.stem.split("_")[1])
     )
+
     for chunk_path in chunks:
         base = chunk_path.parent
         chunk = int(chunk_path.stem.split("_")[1])
 
-        with open(base / f"chunk_{chunk}.pkl", "rb") as f:
+        with open(base / f"chunk_{chunk}.pickle", "rb") as f:
             tokens = pickle.load(f)
         data = np.load(chunk_path)
         scrolls = data["scrolls"]
@@ -254,4 +255,4 @@ if __name__ == "__main__":
     #     cutout_size=(20, 120)
     # )
 
-    generate_data()
+    next(load_batches(0))
