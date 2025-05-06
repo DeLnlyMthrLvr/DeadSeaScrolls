@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 from datetime import datetime
 import sys
+import cv2
 
 sys.path.append("..")
 
@@ -23,10 +24,23 @@ def create_experiment_folder(name: str = "run") -> Path:
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 verbose: int = 2
 
+def resize(imgs: np.ndarray, factor: float):
+
+    height, width = imgs.shape[1:]
+    nh = int(height * factor)
+    nw = int(width * factor)
+
+    new_imgs = []
+    for img in imgs:
+        ri = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_AREA)
+        new_imgs.append(ri)
+
+    return np.stack(new_imgs)
+
 class LineSegmentationDataset(Dataset):
     def __init__(self, scrolls: np.ndarray, line: np.ndarray):
-        self.scrolls = scrolls
-        self.lines = line
+        self.scrolls = resize(scrolls, factor=0.5)
+        self.lines = resize(line, factor=0.5)
 
     def __len__(self):
         return self.scrolls.shape[0]
@@ -37,14 +51,13 @@ class LineSegmentationDataset(Dataset):
         lines = torch.tensor(self.lines[index], dtype=torch.float32).unsqueeze(0)
         return scrolls, lines
 
-
 def train_epoch(
     model: UNet,
     train_data: LineSegmentationDataset,
     validation_data: LineSegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 32,
+    batch_size: int = 128,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -82,14 +95,16 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "unet",
-        epochs: int = 200
+        experiment_name: str | None = "unet"
 
     ):
 
     level = random.choice(list(pool))
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
+
+    val_scrolls = val_scrolls[:300]
+    val_lines = val_lines[:300]
 
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
 
