@@ -10,12 +10,11 @@ from ganv2.cyclegan_models import ResnetGenerator, NLayerDiscriminator
 from synthetic import DataGenerator, SynthSettings
 import time
 
-# Instantiate synthetic generator
+
 MAX_SEQ_LEN = 100 
 gen = DataGenerator(max_sequence_length=MAX_SEQ_LEN,
                     settings=SynthSettings(downscale_factor=0.3))
 
-# Hyperparameters and paths
 num_synthetic = 5000
 root_real     = 'data/image-data'
 output_dir    = 'checkpoints/cyclegan'
@@ -53,12 +52,18 @@ criterion_id    = nn.L1Loss()
 g_optimizer     = optim.Adam(itertools.chain(G_A2B.parameters(), G_B2A.parameters()), lr=lr, betas=(beta1, 0.999))
 d_optimizer     = optim.Adam(itertools.chain(D_A.parameters(), D_B.parameters()), lr=lr, betas=(beta1, 0.999))
 
-# TensorBoard
-writer = SummaryWriter(f'runs/g/{time.strftime("%Y%m%d-%H%M%S")}/'),
+
+writer = SummaryWriter(f'runs/g/{time.strftime("%Y%m%d-%H%M%S")}/')
+
 os.makedirs(output_dir, exist_ok=True)
+
+best_epoch_loss = float('inf')
+best_epoch = -1
 
 global_step = 0
 for epoch in range(1, epochs+1):
+    epoch_loss_G = 0.0
+    num_batches = 0
     for i, (real_A, real_B) in enumerate(dataloader):
         real_A, real_B = real_A.to(device), real_B.to(device)
 
@@ -79,6 +84,9 @@ for epoch in range(1, epochs+1):
         loss_G = loss_GAN_A2B + loss_GAN_B2A + loss_cycle_A + loss_cycle_B + loss_id_A + loss_id_B
         loss_G.backward()
         g_optimizer.step()
+
+        epoch_loss_G += loss_G.item()
+        num_batches += 1
 
         # -- Train Discriminators
         d_optimizer.zero_grad()
@@ -110,7 +118,7 @@ for epoch in range(1, epochs+1):
         if global_step % sample_image_freq == 0:
             with torch.no_grad():
                 imgs = torch.cat([real_A[:4], fake_B[:4], real_B[:4], fake_A[:4]], dim=0)
-                grid = make_grid(imgs, nrow=4, normalize=True)
+                grid = make_grid(imgs, nrow=4)
                 writer.add_image('Train/ImageSamples', grid, global_step)
 
         global_step += 1
@@ -119,16 +127,28 @@ for epoch in range(1, epochs+1):
             print(f"[Epoch {epoch}/{epochs}] [Batch {i}/{len(dataloader)}] "
                   f"[D loss: {loss_D.item():.4f}] [G loss: {loss_G.item():.4f}]")
 
-    
+    avg_epoch_loss = epoch_loss_G / num_batches if num_batches > 0 else float('inf')
+
     with torch.no_grad():
         imgs = torch.cat([real_A[:4], fake_B[:4], real_B[:4], fake_A[:4]], dim=0)
         grid = make_grid(imgs, nrow=4, normalize=True)
         writer.add_image('Epoch/ImageGrid', grid, epoch)
+    
     save_image((imgs * 0.5 + 0.5), os.path.join(output_dir, f"epoch_{epoch}.png"), nrow=4)
     torch.save(G_A2B.state_dict(), os.path.join(output_dir, f"G_A2B_{epoch}.pth"))
     torch.save(G_B2A.state_dict(), os.path.join(output_dir, f"G_B2A_{epoch}.pth"))
     torch.save(D_A.state_dict(),  os.path.join(output_dir, f"D_A_{epoch}.pth"))
     torch.save(D_B.state_dict(),  os.path.join(output_dir, f"D_B_{epoch}.pth"))
+
+    if avg_epoch_loss < best_epoch_loss:
+        best_epoch_loss = avg_epoch_loss
+        best_epoch = epoch
+        torch.save(G_A2B.state_dict(), os.path.join(output_dir, "G_A2B_best.pth"))
+        torch.save(G_B2A.state_dict(), os.path.join(output_dir, "G_B2A_best.pth"))
+        torch.save(D_A.state_dict(),  os.path.join(output_dir, "D_A_best.pth"))
+        torch.save(D_B.state_dict(),  os.path.join(output_dir, "D_B_best.pth"))
+        print(f"Saved new best checkpoint at epoch {epoch} with avg G loss {avg_epoch_loss:.4f}.")
+
     writer.flush()
 
-print("Training complete.")
+print(f"Training complete. Best epoch: {best_epoch} (avg G loss = {best_epoch_loss:.4f})")
