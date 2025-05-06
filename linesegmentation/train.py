@@ -123,6 +123,6 @@ def train_level(
 
 if __name__ == "__main__":
     model, optimizer =  train_level(pool = {0})
-    while True:
+    for _ in range(100):
         train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer)
 
