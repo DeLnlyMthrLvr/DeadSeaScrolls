@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 sea/
+/data/scrolls/*
 
 # C extensions
 *.so
