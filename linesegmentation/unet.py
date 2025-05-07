@@ -36,7 +36,7 @@ class PixelShuffle1D(nn.Module):
 class UNet(nn.Module):
     def __init__(
             self,
-            base_ch: int = 15,
+            base_ch: int = 32,
             enc_kernel_size: tuple[int, int] = (12, 40)
         ) -> None:
         super().__init__()
