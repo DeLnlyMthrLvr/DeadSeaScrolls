@@ -97,7 +97,7 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "wide_unet_largek",
+        experiment_name: str | None = "wide_unet_largek_fixed",
         best_loss: float = float("inf")
     ):
 
@@ -106,8 +106,8 @@ def train_level(
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
 
-    val_scrolls = val_scrolls[:600]
-    val_lines = val_lines[:600]
+    val_scrolls = val_scrolls[:1000]
+    val_lines = val_lines[:1000]
 
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
 
