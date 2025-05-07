@@ -5,6 +5,7 @@ import sys
 import cv2
 
 sys.path.append("..")
+sys.path.append(str(Path(__file__).parent.parent))
 
 import torch.nn as nn
 import torch
@@ -41,15 +42,20 @@ def resize(imgs: np.ndarray, factor: float):
 
 class LineSegmentationDataset(Dataset):
     def __init__(self, scrolls: np.ndarray, line: np.ndarray):
-        self.scrolls = resize(scrolls, factor=0.5)
-        self.lines = resize(line, factor=0.5)
+        factor = np.random.uniform(0.4, 0.6)
+        self.scrolls = resize(scrolls, factor=factor)
+        self.lines = resize(line, factor=factor)
 
     def __len__(self):
         return self.scrolls.shape[0]
 
     def __getitem__(self, index):
         scrolls = torch.tensor(self.scrolls[index], dtype=torch.float32).unsqueeze(0)
+<<<<<<< HEAD
         scrolls = 1- (scrolls / 255)
+=======
+        scrolls = 1 - (scrolls / 255)
+>>>>>>> main
         lines = torch.tensor(self.lines[index], dtype=torch.float32).unsqueeze(0)
         return scrolls, lines
 
@@ -59,7 +65,7 @@ def train_epoch(
     validation_data: LineSegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 128,
+    batch_size: int = 256,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -98,6 +104,7 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
+<<<<<<< HEAD
         experiment_name: str | None = "unet",
         epoch: int | None = None
     ):
@@ -106,6 +113,20 @@ def train_level(
     print(f"------------------Noise Level {level}------------------")
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
+=======
+        experiment_name: str | None = "wide_unet_largek_fixed",
+        best_loss: float = float("inf")
+    ):
+
+    level = random.choice(list(pool))
+    print(f"noise_{level}")
+    iterator = load_batches(level=level)
+    _, val_scrolls, val_lines = next(iterator)
+
+    val_scrolls = val_scrolls[:1000]
+    val_lines = val_lines[:1000]
+
+>>>>>>> main
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
 
     if model is None:
@@ -119,13 +140,14 @@ def train_level(
 
     for _, train_scrolls, train_lines in iterator:
         train_data = LineSegmentationDataset(train_scrolls, train_lines)
-        train_loss, val_losss = train_epoch(
+        train_loss, val_loss = train_epoch(
             model,
             train_data,
             val_data,
             optimizer,
             criterion
         )
+<<<<<<< HEAD
         model.save(experiment_folder)
         with open(experiment_folder / "loss.txt", "a") as f:
             f.write(f"{train_loss:.4f},{val_losss:.4f}\n")
@@ -133,10 +155,22 @@ def train_level(
         writer.add_scalar("Loss/Validation", val_losss, epoch)
         if verbose > 0:
             print(f"Losss {train_loss:.4f}, {val_losss:.4f}")
+=======
+>>>>>>> main
 
-    return model, optimizer
+        if val_loss < best_loss:
+            model.save(experiment_folder)
+            best_loss = val_loss
+
+        with open(experiment_folder / "loss.txt", "a") as f:
+            f.write(f"{train_loss:.4f},{val_loss:.4f}\n")
+        if verbose > 0:
+            print(f"Loss {train_loss:.4f}, {val_loss:.4f}")
+
+    return model, optimizer, experiment_folder, best_loss
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     experiment_folder = create_experiment_folder()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     writer = SummaryWriter(log_dir=f"truns/{timestamp}_run")
@@ -144,4 +178,9 @@ if __name__ == "__main__":
     print("Starting noise trainig")
     for epoch in range(200):
         train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder, epoch=epoch)
+=======
+    model, optimizer, experiment_folder, best_loss =  train_level(pool = {0})
+    for _ in range(5_000):
+        _, _, _, best_loss = train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder)
+>>>>>>> main
 
