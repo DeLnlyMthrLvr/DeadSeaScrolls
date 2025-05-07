@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class UNet(nn.Module):
-    def __init__(self, base_ch: int = 10) -> None:
+    def __init__(self, base_ch: int = 32) -> None:
         super().__init__()
         self.base_ch = base_ch
         self.enc1 = self.conv_block(1, base_ch)
@@ -28,7 +28,7 @@ class UNet(nn.Module):
     @staticmethod
     def conv_block(in_ch: int, out_ch: int) -> nn.Sequential:
         return nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, 3, padding=1),
+            nn.Conv2d(in_ch, out_ch, 7, padding=3),
             nn.LeakyReLU(inplace=True)
         )
 
