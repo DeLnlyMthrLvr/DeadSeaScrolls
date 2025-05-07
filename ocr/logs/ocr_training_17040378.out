@@ -1,0 +1,59 @@
+average loss train: 0.019983272738754748
+average loss train: 0.01835434963926673
+average loss train: 0.017920447662472725
+average loss train: 0.017836984433233737
+average loss train: 0.017637487314641476
+average loss train: 0.017315911930054426
+average loss train: 0.017154380036517976
+average loss train: 0.01689281415194273
+average loss train: 0.01661395974457264
+eval
+Token-Level Accuracy (Teacher Forcing): 31.32%
+Accuracy: 22.35%
+average loss val: 0.03719578767638831
+
+###############################################################################
+Hábrók Cluster
+Job 17040378 for user s3799042
+Finished at: Tue May  6 19:41:42 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17040378
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : a100gpu5
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : FAILED  
+Submit                         : 2025-05-06T19:15:02
+Start                          : 2025-05-06T19:36:22
+End                            : 2025-05-06T19:41:38
+Reserved walltime              : 01:00:00
+Used walltime                  : 00:05:16
+Used CPU time                  : 00:09:08 (Efficiency: 21.69%)
+% User (Computation)           : 69.30%
+% System (I/O)                 : 30.70%
+Total memory reserved          : 32G
+Maximum memory used            : 6.04G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 21%
+Max GPU memory used            : 2.38G
+Hints and tips      :
+ 1) The GPU utilization is low, please check if your code can be optimized,
+    or if you can move your input data to fast local storage.
+ *) For more information on these issues see:
+    https://wiki.hpc.rug.nl/habrok/additional_information/job_hints
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

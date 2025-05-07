@@ -70,3 +70,38 @@ class ScrollLineDatasetIterable(IterableDataset):
 
     def __iter__(self):
         return self.line_iterator()
+    
+
+
+class ScrollLineNoiseDatasetIterable(IterableDataset):
+    def __init__(self, tokenizer, image_size):
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.image_size = image_size
+        self.transform = transforms.Compose([
+            transforms.Grayscale(),
+            transforms.Resize(image_size),
+            transforms.ToTensor()
+        ])
+        self.generator = synthetic.DataGenerator(settings=synthetic.SynthSettings(downscale_factor=1))
+
+
+    def line_iterator(self):
+        while True:
+            tokens, seg, scrolls, lines = self.generator.generate_passages_scrolls(100, skip_char_seg=False)
+
+            for i in range(scrolls.shape[0]):
+                image_tokens = tokens[i]
+                image_lines = synthetic.extract_lines_cc(scrolls[i], lines[i])
+                n_indicies = min(len(image_tokens), len(image_lines))
+
+                for idx in range(n_indicies):
+                    image = Image.fromarray(image_lines[idx])
+                    image = image_creator.pad(image, self.image_size)
+                    image = self.transform(image)
+                    token_ids = self.tokenizer.add_control_tokens(image_tokens[idx])
+                    token_tensor = torch.tensor(token_ids, dtype=torch.long)
+                    yield image, token_tensor
+
+    def __iter__(self):
+        return self.line_iterator()
