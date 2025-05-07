@@ -12,6 +12,8 @@ from torch.utils.data import Dataset, DataLoader
 import tqdm
 from noise_designer import load_batches
 from unet import UNet
+from torch.utils.tensorboard import SummaryWriter
+
 import random
 
 def create_experiment_folder(name: str = "run") -> Path:
@@ -33,7 +35,7 @@ class LineSegmentationDataset(Dataset):
 
     def __getitem__(self, index):
         scrolls = torch.tensor(self.scrolls[index], dtype=torch.float32).unsqueeze(0)
-        scrolls = scrolls / 255
+        scrolls = 1- (scrolls / 255)
         lines = torch.tensor(self.lines[index], dtype=torch.float32).unsqueeze(0)
         return scrolls, lines
 
@@ -82,16 +84,15 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "unet"
+        experiment_name: str | None = "unet",
+        epoch: int | None = None
     ):
 
     level = random.choice(list(pool))
+    print(f"------------------Noise Level {level}------------------")
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
-
-    if experiment_folder is None and (experiment_name is not None):
-        experiment_folder = create_experiment_folder(experiment_name)
 
     if model is None:
         model = UNet()
@@ -113,15 +114,22 @@ def train_level(
         )
         model.save(experiment_folder)
         with open(experiment_folder / "loss.txt", "a") as f:
-            f.write(f"{train_loss:.4f},{val_losss:.4f}")
+            f.write(f"{train_loss:.4f},{val_losss:.4f}\n")
+        writer.add_scalar("Loss/Train", train_loss, epoch)
+        writer.add_scalar("Loss/Validation", val_losss, epoch)
         if verbose > 0:
             print(f"Losss {train_loss:.4f}, {val_losss:.4f}")
 
     return model, optimizer
 
 if __name__ == "__main__":
-    model, optimizer =  train_level(pool = {0})
+    experiment_folder = create_experiment_folder()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    folder = Path(__file__).parent  / "runs" / f"{timestamp}_run"
+    writer = SummaryWriter(log_dir=f"truns/{folder}")
+
+    model, optimizer =  train_level(pool = {0}, experiment_folder=experiment_folder)
     print("Starting noise trainig")
-    for _ in range(100):
-        train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer)
+    for epoch in range(200):
+        train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder, epoch=epoch)
 
