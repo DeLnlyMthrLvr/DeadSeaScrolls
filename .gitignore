@@ -5,6 +5,7 @@ __pycache__/
 
 sea/
 /data/scrolls/*
+/linesegmentation/runs/*
 
 # C extensions
 *.so
@@ -176,8 +177,10 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+ocr/logs/*
 model_weights.pth
 data/test_images_ocr/*
+data/validation_images_ocr/*
 #Seb
 /seb/SnakePract/*
 /seb/runs/*

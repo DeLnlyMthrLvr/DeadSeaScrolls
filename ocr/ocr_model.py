@@ -33,7 +33,7 @@ class PatchEmbedding(nn.Module):
 
 
 class TransformerDecoderBlock(nn.Module):
-    def __init__(self, embedding_dimension, num_heads, mlp_ratio=4.0, dropout=0.1):
+    def __init__(self, embedding_dimension, num_heads, mlp_ratio=4.0, dropout=0.1, cross_attention_scale=1.0):
         super().__init__()
 
         self.norm1 = nn.LayerNorm(embedding_dimension)
@@ -52,7 +52,7 @@ class TransformerDecoderBlock(nn.Module):
         )
 
         self.cross_attention = nn.MultiheadAttention(embedding_dimension, num_heads, dropout=dropout, batch_first=True)
-
+        self.cross_attention_scales = cross_attention_scale
 
     def forward(self, tgt, memory, tgt_mask=None):
         # tgt: (batch, tgt_seq_len, embed_dim)
@@ -74,6 +74,7 @@ class TransformerDecoderBlock(nn.Module):
         residual = tgt
         tgt = self.norm3(tgt)
         tgt, _ = self.cross_attention(tgt, memory, memory, attn_mask=None)
+        tgt = tgt * self.cross_attention_scales
         tgt = tgt + residual
 
         return tgt   
@@ -115,15 +116,13 @@ class ViT(nn.Module):
                depth: int,
                num_classes: int,
                mlp_ratio: float,
-               dropout: float,
-               num_encoder_blocks: int):
+               dropout: float):
 
     super(ViT, self).__init__()
-    self.num_encoder_bocks = num_encoder_blocks
     self.patch_embedder = PatchEmbedding(image_width, image_height, patch_size, embedding_dimension)
     
     self.cls_token = nn.Parameter(torch.randn(1, 1, embedding_dimension))
-    self.position_embedding = nn.Parameter(torch.randn(1, 1 + self.patch_embedder.total_num_patches, embedding_dimension))
+    self.position_embedding = nn.Parameter(torch.zeros(1, 1 + self.patch_embedder.total_num_patches, embedding_dimension))
 
     self.blocks = nn.ModuleList([
       ViTEncoderBlock(embedding_dimension, num_heads, mlp_ratio, dropout) for _ in range(depth)
@@ -154,14 +153,15 @@ class OCR(nn.Module):
                depth_decoder: int,
                vocab_size: int,
                mlp_ratio_decoder = 4.0,
-               dropout_decoder = 0.1):
+               dropout_decoder = 0.1,
+               cross_attention_scale = 1):
     super(OCR, self).__init__()
     self.ViT = ViT
     
     self.token_embedding = nn.Embedding(vocab_size, embedding_dimension_decoder)
     
     self.decoder_blocks = nn.ModuleList([
-      TransformerDecoderBlock(embedding_dimension_decoder, num_heads_decoder, mlp_ratio_decoder, dropout_decoder) for _ in range(depth_decoder)
+      TransformerDecoderBlock(embedding_dimension_decoder, num_heads_decoder, mlp_ratio_decoder, dropout_decoder, cross_attention_scale) for _ in range(depth_decoder)
     ])
     
     self.mlp_head = nn.Sequential(
@@ -170,15 +170,9 @@ class OCR(nn.Module):
     )
   
   def generate_causal_mask(self, seq_len: int, device: torch.device):
-    """
-    Returns a (seq_len, seq_len) causal mask for decoder self-attention.
-    Masked positions are set to -inf.
-    """
-    mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()  # Upper triangle
-    # PyTorch's MultiheadAttention uses float masks with -inf or 0
-    mask = mask.to(device)
-    float_mask = mask.masked_fill(mask, float('-inf'))  # [seq_len, seq_len]
-    return float_mask
+    # Create an upper-triangular matrix of -inf, with zeros on and below the diagonal
+    mask = torch.triu(torch.full((seq_len, seq_len), float('-inf')), diagonal=1)
+    return mask.to(device)
 
   def forward(self, images, tgt_input):
     # Used for training (parallel decoding with teacher forcing)
