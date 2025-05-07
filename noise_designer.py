@@ -63,11 +63,11 @@ def display_progression(
 
 def generate_data(
     n_progress: int = 5,
-    n_variations: int = 10_000,
+    n_variations: int = 12_000,
     perlin_strength: tuple[float, float] = (0.2, 0.25),
     warp_strength: tuple[float, float] = (0, 10),
     cutout_size: tuple[int, int] = (20, 120),
-    batch_size: int = 2_500,
+    batch_size: int = 2_000,
     n_noise_masks: int = 30
 ):
 
@@ -256,4 +256,6 @@ if __name__ == "__main__":
     #     cutout_size=(20, 120)
     # )
 
-    next(load_batches(0))
+    generate_data()
+
+    # next(load_batches(0))
