@@ -1,5 +1,4 @@
 import os
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,6 +6,10 @@ import ocr_model
 from tokenizer import Tokenizer
 import data_loader
 import sys
+import inference
+from datetime import datetime
+import shutil
+from torch.optim.lr_scheduler import LambdaLR
 
 from torch.utils.data import DataLoader
 # Add parent directory to the path
@@ -31,55 +34,122 @@ def ocr_collate_fn(batch, pad_token_id):
 
     return images, padded_targets
 
+def evaluate_loss(model, criterion, dataloader, device):
+    average_loss = 0
+    n_batches = 0
+    with torch.no_grad():
+        for images, target_sequences in dataloader:
+            n_batches +=1
+            images = images.to(device)
+            target_sequences = target_sequences.to(device)
+
+
+            # Shift inputs for teacher forcing
+            tgt_input = target_sequences[:, :-1]     # [BOS, t, e, s, ...]
+            tgt_output = target_sequences[:, 1:]     # [t, e, s, ..., EOS]
+
+            logits = model(images, tgt_input)  # (batch_size, seq_len, vocab_size)
+            loss = criterion(logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1))
+            average_loss += loss.item()/len(images)
+
+    print(f"average loss val: {average_loss/n_batches}")
+    return average_loss/n_batches
+
+def save_scripts(save_dir):
+    train_script = os.path.abspath(__file__)
+    shutil.copy(train_script, os.path.join(save_dir, "train.py"))
+
+    model_script = os.path.join(os.path.dirname(__file__), "ocr_model.py")
+    shutil.copy(model_script, os.path.join(save_dir, "ocr_model.py"))
+
+def log_metrics(save_dir, train_loss, validation_loss, validation_accuracy, accuracy_teacher_forced, lr):
+    log_file = os.path.join(save_dir, "metrics_log.txt")
+
+    line = f"Train Loss: {train_loss:.4f}, Validation Loss: {validation_loss:.4f}, \
+            Validation Accuracy: {validation_accuracy*100:.2f}%, accuracy teacher forced: {accuracy_teacher_forced:.2f}%, \
+            Learning rate: {lr: .8f}\n"
+
+    with open(log_file, "a") as f:
+        f.write(line)
+
+
 def train():
-  patch_size = 16
-  embedding_dimension = 64 #768 base
-  depth = 12 #12 base
-  num_heads = 4 #12 base
+  patch_size = 16 
+  embedding_dimension = 384 #768 base
+  encoder_layers = 12 #12 base
+  decoder_layers = 6
+  num_heads = 6 #12 base
   vocab_size = 30
-  mlp_ratio = 0.4
-  dropout = 0.4
-  num_encoder_blocks = 4
-  num_decoder_blocks = 4
+  mlp_ratio = 4
+  dropout = 0.1
+  batch_size = 128
+  cross_attention_scale = 1.5
   
   image_size = (32, 416)
   
   ViT = ocr_model.ViT(image_size[1], image_size[0], patch_size, 
-                      embedding_dimension, num_heads, depth, vocab_size, mlp_ratio,
-                      dropout, num_encoder_blocks)
+                      embedding_dimension, num_heads, encoder_layers, vocab_size, mlp_ratio,
+                      dropout)
 
-  model = ocr_model.OCR(ViT, embedding_dimension, num_heads, depth, vocab_size)
+  model = ocr_model.OCR(ViT, embedding_dimension, num_heads, decoder_layers, vocab_size, cross_attention_scale=cross_attention_scale)
+  model = nn.DataParallel(model)
   criterion = nn.CrossEntropyLoss()
-  optimizer = optim.Adam(model.parameters(), lr=0.0001)
+  optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0.01)
   device = torch.device('cuda')
   model.to(device)
   tokenizer = Tokenizer(alphabet.char_token)
-  bos_token_id = tokenizer.bos_token_id
-  eos_token_id = tokenizer.eos_token_id
-  num_epochs = 3
-  
+  current_dir = os.path.dirname(__file__)
+  image_dir = os.path.join(current_dir, '..', 'data', 'test_images_ocr')
+  parquet_path = os.path.join(image_dir, "tokens.parquet")
+  weights_path = os.path.join(current_dir, '..', 'model_weights.pth')
 
+  timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+  save_dir = os.path.join("/scratch/s3799042/weights/OCR/", timestamp)
+  os.makedirs(save_dir, exist_ok=True)
+  save_scripts(save_dir)
+
+  num_training_steps = 15_000
+  num_warmup_steps = int(0.1 * num_training_steps)
+
+  def lr_lambda(current_step):
+    if current_step < num_warmup_steps:
+        return float(current_step) / float(max(1, num_warmup_steps))
+    return max(
+        0.0, float(num_training_steps - current_step) / float(max(1, num_training_steps - num_warmup_steps))
+    )
+
+  scheduler = LambdaLR(optimizer, lr_lambda)
+  #model.load_state_dict(torch.load("/scratch/s3799042/weights/OCR/2025-05-06_16-52-54/model_weights.pth"))  
+  dataset_train = data_loader.ScrollLineDatasetIterable(tokenizer, image_size)
+  dataloader_train = DataLoader(dataset_train, batch_size = batch_size, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
   
-  dataset = data_loader.ScrollLineDatasetIterable(tokenizer, image_size)
-  dataloader = DataLoader(dataset, batch_size = 32, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
+  dataset_val = data_loader.ScrollLineDataset(parquet_path, image_dir, tokenizer)
+  dataloader_val = DataLoader(dataset_val, batch_size = batch_size, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
   
-  train_ocr(model, dataloader, optimizer, criterion, device, bos_token_id, eos_token_id, num_epochs)
+  train_ocr(model, dataloader_train, dataloader_val, optimizer, criterion, device, 
+            tokenizer, save_dir, scheduler)
   
-def train_ocr(model, dataloader, optimizer, criterion, device, bos_token_id, eos_token_id, num_epochs):
+def train_ocr(model, dataloader_train, dataloader_val, optimizer, criterion, 
+              device, tokenizer, save_dir, scheduler):
     model.train()
-
-    #for epoch in range(num_epochs):
-    total_loss = 0
+    average_loss = 0
     count = 0
-    print_after_n_batches = 13
-    save_after_n_batches = 10_000
-    for images, target_sequences in dataloader:
-        if count > 0 and count % print_after_n_batches == 0:
-            print(total_loss)
-            total_loss = 0
+    print_after_n_batches = 100
+    save_after_n_batches = 1000
+    for images, target_sequences in dataloader_train:
         if count > 0 and count % save_after_n_batches == 0:
-            print("save")
-            torch.save(model.state_dict(), "model_weights.pth")
+            current_lr = optimizer.param_groups[0]['lr']
+            token_accuracy = inference.token_accuracy(model, dataloader_val, tokenizer, device)
+            val_accuracy = inference.evaluate_accuracy(model, dataloader_val, tokenizer, device)
+            val_loss = evaluate_loss(model, criterion, dataloader_val, device)
+            log_metrics(save_dir, average_loss/print_after_n_batches, val_loss, val_accuracy, token_accuracy,
+                         current_lr)
+            torch.save(model.state_dict(), os.path.join(save_dir,"model_weights.pth"))
+            model.train()
+        if count > 0 and count % print_after_n_batches == 0:
+            print(f"average loss train: {average_loss/print_after_n_batches}")
+            average_loss = 0
+
 
         images = images.to(device)
         target_sequences = target_sequences.to(device)
@@ -94,13 +164,13 @@ def train_ocr(model, dataloader, optimizer, criterion, device, bos_token_id, eos
         loss = criterion(logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1))
 
         loss.backward()
+        scheduler.step()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
-        total_loss += loss.item()
-        #print(loss.item())
+        average_loss += loss.item()/len(images)
         count += 1
 
-    #print(f"Epoch {epoch+1}/{num_epochs}, Loss: {total_loss:.4f}")
     torch.save(model.state_dict(), "model_weights.pth")
 
 
