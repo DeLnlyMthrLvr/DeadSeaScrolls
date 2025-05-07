@@ -1,0 +1,4 @@
+aiohttp==3.11.16
+imageio==2.37.0
+matplotlib==3.10.1
+opencv-python==4.11.0.86

@@ -57,6 +57,39 @@ def create_images(n_scrolls: int, image_size: tuple):
     df = pd.DataFrame(rows) 
     df.to_parquet(parquet_path,engine="pyarrow", index=False)
 
+def create_images_n_grams(n_scrolls: int, image_size: tuple):
+    transform = transforms.Compose([
+    transforms.Grayscale(),
+    transforms.Resize(image_size),
+    transforms.ToTensor()
+    ]) 
+    generator = synthetic.DataGenerator(settings=synthetic.SynthSettings(downscale_factor=1))
+    current_dir = os.path.dirname(__file__)
+    target_dir = os.path.join(current_dir, '..', 'data', 'n_gram_images')
+
+    parquet_path = os.path.join(target_dir, "tokens.parquet")
+    tokens, seg, scrolls, lines = generator.generate_ngram_scrolls(n_scrolls, skip_char_seg=False)
+    rows = []
+    for i in range(scrolls.shape[0]):
+        image_tokens = tokens[i]
+        image_lines = synthetic.extract_lines_cc(scrolls[i], lines[i])
+        n_indicies = min(len(image_tokens), len(image_lines))
+
+        for idx in range(n_indicies):
+            image = Image.fromarray(image_lines[idx])
+            image = pad(image, image_size)
+            image = transform(image)
+            to_pil = ToPILImage()
+            image_pil = to_pil(image)
+            image_pil.save(os.path.join(target_dir, f"scroll_{i}_line_{idx}.png"))
+            rows.append({
+            "image": f"scroll_{i}_line_{idx}",
+            "tokens": image_tokens[idx]
+            })
+    df = pd.DataFrame(rows) 
+    df.to_parquet(parquet_path,engine="pyarrow", index=False)
+
+
 if __name__ == "__main__":
     image_size = (32, 416)
-    create_images(300, image_size)
+    create_images_n_grams(100, image_size)

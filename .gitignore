@@ -5,7 +5,9 @@ __pycache__/
 
 sea/
 /data/scrolls/*
+/data/n_gram_images
 /linesegmentation/runs/*
+/data/sample-test-2025/*
 
 # C extensions
 *.so
