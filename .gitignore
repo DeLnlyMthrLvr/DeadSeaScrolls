@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 
 sea/
+/data/scrolls/*
+/linesegmentation/runs/*
 
 # C extensions
 *.so
