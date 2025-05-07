@@ -175,6 +175,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+ocr/logs/*
 model_weights.pth
 data/test_images_ocr/*
 data/validation_images_ocr/*
