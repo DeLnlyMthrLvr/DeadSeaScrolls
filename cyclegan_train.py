@@ -15,11 +15,11 @@ MAX_SEQ_LEN = 100
 gen = DataGenerator(max_sequence_length=MAX_SEQ_LEN,
                     settings=SynthSettings(downscale_factor=0.3))
 
-num_synthetic = 5000
+num_synthetic = 15000
 root_real     = 'data/image-data'
 output_dir    = 'checkpoints/cyclegan'
 img_size           = (120, 300)
-batch_size         = 16
+batch_size         = 32
 epochs             = 100
 lr                 = 2e-4
 beta1              = 0.5
@@ -29,6 +29,10 @@ sample_image_freq  = 200  # log images every N steps
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Playing on: {device}")
+if device.type == 'cuda':
+    print(f"CUDA device count: {torch.cuda.device_count()}")
+    print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
+    print(f"CUDA device memory: {torch.cuda.get_device_properties(0).total_memory / 1024**2:.2f} MB")
 
 # DataLoader
 dataloader = create_unpaired_dataloader(
@@ -38,6 +42,8 @@ dataloader = create_unpaired_dataloader(
     img_size=img_size,
     batch_size=batch_size
 )
+
+print(f"Dataset size: {len(dataloader.dataset)}")
 
 # Models
 G_A2B = ResnetGenerator(1, 1).to(device)
@@ -124,7 +130,7 @@ for epoch in range(1, epochs+1):
         global_step += 1
 
         if i % 100 == 0:
-            print(f"[Epoch {epoch}/{epochs}] [Batch {i}/{len(dataloader)}] "
+            print(f"T[{time.strftime("%d|%H%M%S")}][Epoch {epoch}/{epochs}] [Batch {i}/{len(dataloader)}] "
                   f"[D loss: {loss_D.item():.4f}] [G loss: {loss_G.item():.4f}]")
 
     avg_epoch_loss = epoch_loss_G / num_batches if num_batches > 0 else float('inf')

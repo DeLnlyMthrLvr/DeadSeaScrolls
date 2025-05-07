@@ -5,7 +5,8 @@
 #SBATCH --gres=gpu:a100:1
 #SBATCH --mem=32GB
 #SBATCH --nodes=1
-#SBATCH --time=4:00:00
+#SBATCH --time=12:00:00
+
 
 module load CUDA/12.4.0
 
