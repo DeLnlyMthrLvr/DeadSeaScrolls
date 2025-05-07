@@ -1,0 +1,192 @@
+average loss train: 0.020092779081314804
+average loss train: 0.018297401294112205
+average loss train: 0.0180470397695899
+average loss train: 0.01768501887097955
+average loss train: 0.01746075440198183
+average loss train: 0.01724738797172904
+average loss train: 0.017014196906238795
+average loss train: 0.016816393351182343
+average loss train: 0.016610134607180953
+eval
+Token-Level Accuracy (Teacher Forcing): 30.34%
+Accuracy: 22.85%
+average loss val: 0.03732101872031178
+average loss train: 0.016473409589380025
+average loss train: 0.016210623681545258
+average loss train: 0.016018821867182852
+average loss train: 0.015800721608102322
+average loss train: 0.015590502172708512
+average loss train: 0.015313755329698324
+average loss train: 0.015013848654925823
+average loss train: 0.014712438825517893
+average loss train: 0.014319196799769998
+average loss train: 0.013583366209641099
+eval
+Token-Level Accuracy (Teacher Forcing): 50.38%
+Accuracy: 32.06%
+average loss val: 0.026631807753195364
+average loss train: 0.01286104841157794
+average loss train: 0.011921521946787835
+average loss train: 0.011091502401977777
+average loss train: 0.010418062610551716
+average loss train: 0.009739533131942153
+average loss train: 0.009261249592527747
+average loss train: 0.00873441849835217
+average loss train: 0.008207167568616568
+average loss train: 0.007754308707080782
+average loss train: 0.007429510909132659
+eval
+Token-Level Accuracy (Teacher Forcing): 74.51%
+Accuracy: 41.48%
+average loss val: 0.013610758641291233
+average loss train: 0.006967562939971686
+average loss train: 0.006641171080991626
+average loss train: 0.006293070209212601
+average loss train: 0.006095909965224564
+average loss train: 0.00570240925066173
+average loss train: 0.005409409902058542
+average loss train: 0.005122029320336879
+average loss train: 0.005050215893425048
+average loss train: 0.004765231795608997
+average loss train: 0.004562912224791944
+eval
+Token-Level Accuracy (Teacher Forcing): 86.18%
+Accuracy: 45.09%
+average loss val: 0.006878198096750393
+average loss train: 0.004361473910976201
+average loss train: 0.004251923714764416
+average loss train: 0.004050870537757874
+average loss train: 0.0038505939510650932
+average loss train: 0.003749346632976085
+average loss train: 0.0035921860835514963
+average loss train: 0.003430148710031062
+average loss train: 0.0033083185879513623
+average loss train: 0.003193786861374974
+average loss train: 0.0030810128687880933
+eval
+Token-Level Accuracy (Teacher Forcing): 86.82%
+Accuracy: 55.72%
+average loss val: 0.00656467073020481
+average loss train: 0.0030051525379531084
+average loss train: 0.0028754070750437676
+average loss train: 0.002780754021368921
+average loss train: 0.002695262315683067
+average loss train: 0.0026151242037303745
+average loss train: 0.002522109695710242
+average loss train: 0.0024262187536805866
+average loss train: 0.00237157232593745
+average loss train: 0.0022530830884352326
+average loss train: 0.0021896972064860167
+eval
+Token-Level Accuracy (Teacher Forcing): 93.82%
+Accuracy: 60.31%
+average loss val: 0.0031619428163616077
+average loss train: 0.0021359024045523255
+average loss train: 0.0020339890161994844
+average loss train: 0.0020033724140375853
+average loss train: 0.001947506604483351
+average loss train: 0.0018601610115729272
+average loss train: 0.0018059362762141973
+average loss train: 0.0017426341993268578
+average loss train: 0.001694491603411734
+average loss train: 0.0016753122664522379
+average loss train: 0.0016077146294992417
+eval
+Token-Level Accuracy (Teacher Forcing): 95.37%
+Accuracy: 63.98%
+average loss val: 0.0024233119530392634
+average loss train: 0.0015616684325505047
+average loss train: 0.0014906584785785526
+average loss train: 0.001454996244283393
+average loss train: 0.0014119104132987558
+average loss train: 0.0013794926623813808
+average loss train: 0.001339105380466208
+average loss train: 0.0012927757605211809
+average loss train: 0.0012776271044276654
+average loss train: 0.0012547143816482277
+average loss train: 0.0012008287478238345
+eval
+Token-Level Accuracy (Teacher Forcing): 96.73%
+Accuracy: 65.93%
+average loss val: 0.0015964470228590514
+average loss train: 0.0011967049550730734
+average loss train: 0.0011442872538464143
+average loss train: 0.001101421291823499
+average loss train: 0.0010797790880315006
+average loss train: 0.0010695116105489432
+average loss train: 0.0010378154885256662
+average loss train: 0.0010224859067238868
+average loss train: 0.0009843345265835523
+average loss train: 0.0009704638208495453
+average loss train: 0.0009406195324845612
+eval
+Token-Level Accuracy (Teacher Forcing): 97.49%
+Accuracy: 73.20%
+average loss val: 0.0010848870643669563
+average loss train: 0.0009407176345121116
+average loss train: 0.0009154831670457498
+average loss train: 0.0008822162402793765
+average loss train: 0.0008857642591465264
+average loss train: 0.0008342781633837149
+average loss train: 0.0008379020274151117
+average loss train: 0.000800418199505657
+average loss train: 0.0007743000442860648
+average loss train: 0.0007885172835085541
+average loss train: 0.0007480993535136804
+eval
+Token-Level Accuracy (Teacher Forcing): 98.06%
+Accuracy: 71.65%
+average loss val: 0.0008582826516690797
+average loss train: 0.0007392374344635755
+average loss train: 0.0007112713769311086
+average loss train: 0.0007056321878917515
+average loss train: 0.0006852904503466561
+average loss train: 0.0006777516705915331
+average loss train: 0.000672915106988512
+average loss train: 0.000644238118256908
+average loss train: 0.0006330425039050169
+average loss train: 0.0006194510421482846
+average loss train: 0.0006058449650299735
+eval
+Token-Level Accuracy (Teacher Forcing): 98.29%
+
+###############################################################################
+Hábrók Cluster
+Job 17048623 for user s3799042
+Finished at: Tue May  6 23:45:15 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17048623
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : a100gpu6
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : TIMEOUT  
+Submit                         : 2025-05-06T22:43:58
+Start                          : 2025-05-06T22:45:02
+End                            : 2025-05-06T23:45:10
+Reserved walltime              : 01:00:00
+Used walltime                  : 01:00:08
+Used CPU time                  : 01:47:33 (Efficiency: 22.36%)
+% User (Computation)           : 68.99%
+% System (I/O)                 : 31.01%
+Total memory reserved          : 32G
+Maximum memory used            : 6.26G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 37%
+Max GPU memory used            : 2.38G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

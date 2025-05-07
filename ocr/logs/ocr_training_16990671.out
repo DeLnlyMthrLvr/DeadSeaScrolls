@@ -1,0 +1,340 @@
+eval
+Accuracy: 54.81%
+average loss val: 0.0021984026274360687
+average loss train: 0.0024649888962158003
+average loss train: 0.0020234243466402406
+average loss train: 0.0018604410401312633
+average loss train: 0.0017113352412707172
+average loss train: 0.0014432677327713465
+average loss train: 0.0014367834255681372
+average loss train: 0.0012016471659007948
+average loss train: 0.0011803492451726925
+average loss train: 0.0011882189896714407
+eval
+Accuracy: 60.86%
+average loss val: 0.0008386473455841588
+average loss train: 0.0010200188802264164
+average loss train: 0.0010090925449039788
+average loss train: 0.0008873293356155045
+average loss train: 0.0008641732850228436
+average loss train: 0.0008391094002436148
+average loss train: 0.0007455060942011186
+average loss train: 0.0007681889119849075
+average loss train: 0.0007094528344023275
+average loss train: 0.0006774543743522372
+average loss train: 0.0007388934797127149
+eval
+Accuracy: 47.40%
+average loss val: 0.0004828446254201554
+average loss train: 0.0006397641129660769
+average loss train: 0.0005751522590144305
+average loss train: 0.0006199489106948022
+average loss train: 0.0005986726036426262
+average loss train: 0.0005701958871977695
+average loss train: 0.0005229566943598911
+average loss train: 0.0005715300938863948
+average loss train: 0.0005031555914356431
+average loss train: 0.0004897907697231858
+average loss train: 0.0004986684090363269
+eval
+Accuracy: 61.63%
+average loss val: 0.0004359714944007714
+average loss train: 0.00048023900903353936
+average loss train: 0.00046797707578116385
+average loss train: 0.00045173350932600445
+average loss train: 0.0004755182668704947
+average loss train: 0.0004324014775302203
+average loss train: 0.0003931298972202058
+average loss train: 0.00045176787481977955
+average loss train: 0.00043921547723948606
+average loss train: 0.000405532758031768
+average loss train: 0.00039567453181371095
+eval
+Accuracy: 52.99%
+average loss val: 0.0002799256374637747
+average loss train: 0.0003910146778980561
+average loss train: 0.0003994050570618128
+average loss train: 0.00042265740411676235
+average loss train: 0.00033032306618770233
+average loss train: 0.00038628254438845033
+average loss train: 0.00036303704607780675
+average loss train: 0.00041085713241409394
+average loss train: 0.00035006808726211603
+average loss train: 0.00033846666436329544
+average loss train: 0.0003747912793442083
+eval
+Accuracy: 58.61%
+average loss val: 0.00026417064964001565
+average loss train: 0.0003428152746055275
+average loss train: 0.00035303679927164923
+average loss train: 0.00032327014768998195
+average loss train: 0.0003128628139220382
+average loss train: 0.0003663152458084369
+average loss train: 0.00032446535963754285
+average loss train: 0.00033328108246678313
+average loss train: 0.0003400064126044526
+average loss train: 0.00032896845903633223
+average loss train: 0.00033224387407972247
+eval
+Accuracy: 57.99%
+average loss val: 0.00022953065346662915
+average loss train: 0.0003182942580933741
+average loss train: 0.0003166686436652526
+average loss train: 0.00029197401979672575
+average loss train: 0.00029617592622162194
+average loss train: 0.0002833630671921128
+average loss train: 0.00029970820823291435
+average loss train: 0.0003294148943159598
+average loss train: 0.0002956681996729458
+average loss train: 0.00026343038418508516
+average loss train: 0.00028672352367721033
+eval
+Accuracy: 52.35%
+average loss val: 0.00020025742864223444
+average loss train: 0.0003294938790168089
+average loss train: 0.00026372970095690107
+average loss train: 0.0002536219812118361
+average loss train: 0.0003167003726739495
+average loss train: 0.0002790881571927457
+average loss train: 0.00029676603341249576
+average loss train: 0.00025950895925052464
+average loss train: 0.0002719988676490175
+average loss train: 0.00029897264473220274
+average loss train: 0.0002535462227242533
+eval
+Accuracy: 60.43%
+average loss val: 0.00026169552396016616
+average loss train: 0.00037406960858970704
+average loss train: 0.00029836049537334473
+average loss train: 0.0003070840146019691
+average loss train: 0.0002655642829631688
+average loss train: 0.00021801139119861546
+average loss train: 0.00032119345083810914
+average loss train: 0.00029683820539958103
+average loss train: 0.00025139317463163027
+average loss train: 0.00021387461451104174
+average loss train: 0.00028379128919914367
+eval
+Accuracy: 60.37%
+average loss val: 0.0003448998713959691
+average loss train: 0.000312429962121314
+average loss train: 0.0002598127216360808
+average loss train: 0.00031296032689078857
+average loss train: 0.00028563090514762736
+average loss train: 0.0002694330263620941
+average loss train: 0.0002748850732186838
+average loss train: 0.0003449177813308779
+average loss train: 0.00019677658551427158
+average loss train: 0.0002671856527458658
+average loss train: 0.0002549709396180333
+eval
+Accuracy: 56.29%
+average loss val: 0.000147055829048164
+average loss train: 0.00027217919981285376
+average loss train: 0.0002261446256297859
+average loss train: 0.0003218657724764853
+average loss train: 0.00022272405969943067
+average loss train: 0.00024365619864147447
+average loss train: 0.00026366727403637924
+average loss train: 0.00030773283317830647
+average loss train: 0.00022874095688166563
+average loss train: 0.00027792194894027487
+average loss train: 0.0002348509253906741
+eval
+Accuracy: 46.68%
+average loss val: 0.00019906634000211446
+average loss train: 0.0003325672093651519
+average loss train: 0.000397105483478299
+average loss train: 0.00023360844189664932
+average loss train: 0.000288862728134518
+average loss train: 0.0004352862668692978
+average loss train: 0.000289732104021823
+average loss train: 0.00023678676555846323
+average loss train: 0.000268387499914752
+average loss train: 0.00025466726394552096
+average loss train: 0.00035804297455433695
+eval
+Accuracy: 54.08%
+average loss val: 0.00010333867953787899
+average loss train: 0.000202228493381881
+average loss train: 0.00025167067994470927
+average loss train: 0.0003162316380394259
+average loss train: 0.0002114495844452904
+average loss train: 0.0002955163049991825
+average loss train: 0.00027709052004865954
+average loss train: 0.00020758463901483993
+average loss train: 0.0003843431494988181
+average loss train: 0.0003033731887244358
+average loss train: 0.0002466037758586026
+eval
+Accuracy: 54.22%
+average loss val: 0.00014943630833177908
+average loss train: 0.00025200237402532366
+average loss train: 0.00021681593617631733
+average loss train: 0.0003189894549477685
+average loss train: 0.000226433586109124
+average loss train: 0.00043674136986555825
+average loss train: 0.00027195169223523407
+average loss train: 0.00038788475623641714
+average loss train: 0.0003282563323591603
+average loss train: 0.00025527156495081725
+average loss train: 0.0002544689696596834
+eval
+Accuracy: 51.26%
+average loss val: 0.00024738184233367077
+average loss train: 0.00025110121829493437
+average loss train: 0.0003518383832742984
+average loss train: 0.00031075257806242006
+average loss train: 0.00030412750976847744
+average loss train: 0.0003403006664793793
+average loss train: 0.00030793239741160505
+average loss train: 0.00039238213813951007
+average loss train: 0.0002870450356695073
+average loss train: 0.0004218195163521159
+average loss train: 0.0002613308522513762
+eval
+Accuracy: 47.89%
+average loss val: 0.00026706945684367675
+average loss train: 0.00048799720030729077
+average loss train: 0.00042656169936344666
+average loss train: 0.00025716650413414754
+average loss train: 0.00021453893954185332
+average loss train: 0.0004928390024879263
+average loss train: 0.00035586729785973145
+average loss train: 0.0003942448832804075
+average loss train: 0.0003595150706187269
+average loss train: 0.0004003332675601996
+average loss train: 0.0005157325999225577
+eval
+Accuracy: 57.16%
+average loss val: 0.00013939686565815162
+average loss train: 0.00035297517429899017
+average loss train: 0.0002718423007972888
+average loss train: 0.00022311173147500086
+average loss train: 0.00034129938243313517
+average loss train: 0.00033830477485753365
+average loss train: 0.0003502714362239203
+average loss train: 0.0004917912084711133
+average loss train: 0.00042001534668270325
+average loss train: 0.0002700246902768413
+average loss train: 0.0004521050472430943
+eval
+Accuracy: 58.00%
+average loss val: 0.0001533176359654858
+average loss train: 0.0003706702601521101
+average loss train: 0.0002766085038692836
+average loss train: 0.0008940306153745042
+average loss train: 0.0006665304489797563
+average loss train: 0.00031095702826132763
+average loss train: 0.00039494059834578366
+average loss train: 0.00036775794139794015
+average loss train: 0.000415264780207508
+average loss train: 0.00032700338805989306
+average loss train: 0.0004133619636813819
+eval
+Accuracy: 31.73%
+average loss val: 0.0003735677809488615
+average loss train: 0.0003503586227507185
+average loss train: 0.0006017889380309498
+average loss train: 0.00037215688467404106
+average loss train: 0.000504693601757026
+average loss train: 0.00040628246599226257
+average loss train: 0.0005458895330739324
+average loss train: 0.0007704313691428979
+average loss train: 0.00047828729502361967
+average loss train: 0.00045767901359067764
+average loss train: 0.0003311931989464938
+eval
+Accuracy: 48.67%
+average loss val: 0.0008795320003021819
+average loss train: 0.0004135545104218181
+average loss train: 0.00046139165841850625
+average loss train: 0.0006120494717324618
+average loss train: 0.0004668606187988189
+average loss train: 0.00046725492560835847
+average loss train: 0.00047658945906187
+average loss train: 0.0008304234091338004
+average loss train: 0.00037003221066152036
+average loss train: 0.0004904045566036074
+average loss train: 0.0005255871995577763
+eval
+Accuracy: 59.83%
+average loss val: 0.00031150482300623753
+average loss train: 0.0006692571894200228
+average loss train: 0.0004025884869188303
+average loss train: 0.0005268088736265781
+average loss train: 0.00047677732317606567
+average loss train: 0.000585502127349173
+average loss train: 0.0007793261338592856
+average loss train: 0.0007083175540610683
+average loss train: 0.0004874944340372167
+average loss train: 0.000923416508223454
+average loss train: 0.0005264762671249628
+eval
+Accuracy: 54.47%
+average loss val: 0.0009204978907937968
+average loss train: 0.000474255165001523
+average loss train: 0.0006986955878819571
+average loss train: 0.0005161426306949579
+average loss train: 0.0010532443630654597
+average loss train: 0.000559198116621701
+average loss train: 0.0005437358440467506
+average loss train: 0.0007888021268263401
+average loss train: 0.0004767328257803456
+average loss train: 0.0020356234557693826
+average loss train: 0.0007213279482966755
+eval
+Accuracy: 59.51%
+average loss val: 0.00044765536562068855
+average loss train: 0.0005088846634680521
+average loss train: 0.0004619010284586693
+average loss train: 0.0012067998495949724
+average loss train: 0.001123078034259379
+average loss train: 0.0005550049626981491
+average loss train: 0.00043808595622977007
+average loss train: 0.001537820662240847
+average loss train: 0.0014840877439419274
+average loss train: 0.000991166912339395
+average loss train: 0.000840352610044647
+eval
+
+###############################################################################
+Hábrók Cluster
+Job 16990671 for user s3799042
+Finished at: Tue May  6 10:58:13 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 16990671
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpumedium
+Nodes                          : a100gpu3
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : TIMEOUT  
+Submit                         : 2025-05-05T22:50:24
+Start                          : 2025-05-05T22:57:44
+End                            : 2025-05-06T10:58:08
+Reserved walltime              : 12:00:00
+Used walltime                  : 12:00:24
+Used CPU time                  : 20:35:28 (Efficiency: 21.44%)
+% User (Computation)           : 85.87%
+% System (I/O)                 : 14.13%
+Total memory reserved          : 32G
+Maximum memory used            : 6.31G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 32%
+Max GPU memory used            : 2.21G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

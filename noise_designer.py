@@ -243,6 +243,7 @@ def load_batches(level: int):
 
         with open(base / f"chunk_{chunk}.pickle", "rb") as f:
             tokens = pickle.load(f)
+
         data = np.load(chunk_path)
         scrolls = data["scrolls"]
         line_masks = data["line_masks"]

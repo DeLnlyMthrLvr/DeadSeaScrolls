@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 from datetime import datetime
 import sys
+import cv2
 
 sys.path.append("..")
 
@@ -25,10 +26,23 @@ def create_experiment_folder(name: str = "run") -> Path:
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 verbose: int = 2
 
+def resize(imgs: np.ndarray, factor: float):
+
+    height, width = imgs.shape[1:]
+    nh = int(height * factor)
+    nw = int(width * factor)
+
+    new_imgs = []
+    for img in imgs:
+        ri = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_AREA)
+        new_imgs.append(ri)
+
+    return np.stack(new_imgs)
+
 class LineSegmentationDataset(Dataset):
     def __init__(self, scrolls: np.ndarray, line: np.ndarray):
-        self.scrolls = scrolls
-        self.lines = line
+        self.scrolls = resize(scrolls, factor=0.5)
+        self.lines = resize(line, factor=0.5)
 
     def __len__(self):
         return self.scrolls.shape[0]
@@ -39,14 +53,13 @@ class LineSegmentationDataset(Dataset):
         lines = torch.tensor(self.lines[index], dtype=torch.float32).unsqueeze(0)
         return scrolls, lines
 
-
 def train_epoch(
     model: UNet,
     train_data: LineSegmentationDataset,
     validation_data: LineSegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 32,
+    batch_size: int = 128,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -63,6 +76,7 @@ def train_epoch(
         track_loss.append(loss.item())
 
         optimizer.zero_grad()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         loss.backward()
         optimizer.step()
 
@@ -99,7 +113,7 @@ def train_level(
         model = model.to(device)
 
     if optimizer is None:
-        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4*2)
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -125,9 +139,7 @@ def train_level(
 if __name__ == "__main__":
     experiment_folder = create_experiment_folder()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    folder = Path(__file__).parent  / "runs" / f"{timestamp}_run"
-    writer = SummaryWriter(log_dir=f"truns/{folder}")
-
+    writer = SummaryWriter(log_dir=f"truns/{timestamp}_run")
     model, optimizer =  train_level(pool = {0}, experiment_folder=experiment_folder)
     print("Starting noise trainig")
     for epoch in range(200):
