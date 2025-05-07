@@ -205,3 +205,86 @@ average loss train: 0.0009930370352230966
 average loss train: 0.0010114854661514982
 eval
 Token-Level Accuracy (Teacher Forcing): 97.00%
+Accuracy: 84.53%
+average loss val: 0.0013824154358146536
+average loss train: 0.0010031352040823548
+average loss train: 0.0009801812132354825
+average loss train: 0.0010090704273898155
+average loss train: 0.0009939954860601575
+average loss train: 0.0010016091336729005
+average loss train: 0.0010097427741857245
+average loss train: 0.0009798804885940626
+average loss train: 0.000993983629741706
+average loss train: 0.0009986087685683743
+average loss train: 0.000989872941863723
+eval
+Token-Level Accuracy (Teacher Forcing): 97.00%
+Accuracy: 84.53%
+average loss val: 0.0013824154358146536
+average loss train: 0.0009859116293955594
+average loss train: 0.0010057366266846657
+average loss train: 0.0010152890253812075
+average loss train: 0.0010148764331825077
+average loss train: 0.0010058270604349673
+average loss train: 0.000992877947865054
+average loss train: 0.000996067879605107
+average loss train: 0.0009928469348233194
+average loss train: 0.0010007337905699387
+average loss train: 0.0010055476753041148
+eval
+Token-Level Accuracy (Teacher Forcing): 97.00%
+Accuracy: 84.53%
+average loss val: 0.0013824154358146536
+average loss train: 0.0010022847080836074
+average loss train: 0.0009905794472433627
+average loss train: 0.0009832594502950087
+average loss train: 0.0010176964331185445
+average loss train: 0.001004634666023776
+average loss train: 0.0010004299320280552
+average loss train: 0.001009107711724937
+average loss train: 0.0010059555841144174
+average loss train: 0.001004649992682971
+average loss train: 0.0010155032039619982
+eval
+Token-Level Accuracy (Teacher Forcing): 97.00%
+
+###############################################################################
+Hábrók Cluster
+Job 17057721 for user s3799042
+Finished at: Wed May  7 10:27:04 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17057721
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : a100gpu6
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : TIMEOUT  
+Submit                         : 2025-05-07T08:56:42
+Start                          : 2025-05-07T08:56:44
+End                            : 2025-05-07T10:26:59
+Reserved walltime              : 01:30:00
+Used walltime                  : 01:30:15
+Used CPU time                  : 02:43:32 (Efficiency: 22.65%)
+% User (Computation)           : 69.79%
+% System (I/O)                 : 30.21%
+Total memory reserved          : 32G
+Maximum memory used            : 6.31G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 38%
+Max GPU memory used            : 2.38G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################
