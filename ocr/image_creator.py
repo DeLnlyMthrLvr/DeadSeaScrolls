@@ -56,6 +56,7 @@ def create_images(n_scrolls: int, image_size: tuple):
             })
     df = pd.DataFrame(rows) 
     df.to_parquet(parquet_path,engine="pyarrow", index=False)
+
 if __name__ == "__main__":
     image_size = (32, 416)
-    create_images(100, image_size)
+    create_images(300, image_size)
