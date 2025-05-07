@@ -1,0 +1,9 @@
+Evaluating:   0%|                                                             | 0/4 [00:00<?, ?it/s]Evaluating:  25%|█████████████▎                                       | 1/4 [00:04<00:14,  4.80s/it]Evaluating:  50%|██████████████████████████▌                          | 2/4 [00:09<00:09,  4.77s/it]Evaluating:  75%|███████████████████████████████████████▊             | 3/4 [00:14<00:04,  4.77s/it]Evaluating: 100%|█████████████████████████████████████████████████████| 4/4 [00:15<00:00,  3.20s/it]Evaluating: 100%|█████████████████████████████████████████████████████| 4/4 [00:15<00:00,  3.78s/it]
+Traceback (most recent call last):
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train.py", line 160, in <module>
+    train()
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train.py", line 115, in train
+    train_ocr(model, dataloader_train, dataloader_val, optimizer, criterion, device, tokenizer, save_dir)
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train.py", line 129, in train_ocr
+    log_metrics(save_dir, average_loss/print_after_n_batches, val_loss, val_accuracy)
+TypeError: log_metrics() missing 1 required positional argument: 'accuracy_teacher_forced'
