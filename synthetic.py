@@ -92,15 +92,16 @@ def _create_image(
             used_tokens.append(line_tokens)
             line_tokens = []
 
-            line[
-                int(line_min_y) + line_seg_offset : int(line_max_y) - line_seg_offset,
-                int(line_min_x) - 2: int(line_max_x) + 2
-            ] = 1
+            if not (line_max_x == -float("inf") or line_min_x == float("inf") or line_max_y == -float("inf") or line_min_y == float("inf")):
+                line[
+                    int(line_min_y) + line_seg_offset : int(line_max_y) - line_seg_offset,
+                    int(line_min_x) - 2: int(line_max_x) + 2
+                ] = 1
 
-            line_max_x = -float("inf")
-            line_min_x = float("inf")
-            line_max_y = -float("inf")
-            line_min_y = float("inf")
+        line_max_x = -float("inf")
+        line_min_x = float("inf")
+        line_max_y = -float("inf")
+        line_min_y = float("inf")
 
     i = -1
     while i < len(iterator):
@@ -148,19 +149,17 @@ def _create_image(
                 i -= 1
                 continue
 
-
         # Letter can be applied
         if token != space_token:
             segmentation[token, cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
             line_tokens.append(token)
 
+            line_min_y = min(cur_y, line_min_y)
+            line_min_x = min(new_x, line_min_x)
+            line_max_y = max(bottom, line_max_y)
+            line_max_x = max(cur_x, line_max_x)
+
         canvas[cur_y:bottom, new_x:cur_x][mask] = letter_img[mask]
-
-        line_min_y = min(cur_y, line_min_y)
-        line_min_x = min(new_x, line_min_x)
-        line_max_y = max(bottom, line_max_y)
-        line_max_x = max(cur_x, line_max_x)
-
 
         cur_x = cur_x - int(w * settings.spacing_multiplier)
         max_char_height_per_row = max(max_char_height_per_row, h)
