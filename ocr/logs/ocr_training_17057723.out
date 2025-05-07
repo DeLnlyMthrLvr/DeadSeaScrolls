@@ -138,3 +138,16 @@ average loss train: 0.0002119488018070115
 average loss train: 0.000210510830002022
 average loss train: 0.00020379206369398162
 Token-Level Accuracy (Teacher Forcing): 99.49%
+Accuracy: 76.03%
+average loss val: 0.0002919592989201192
+average loss train: 0.00020313880282628815
+average loss train: 0.00020003226294647901
+average loss train: 0.0001946862095792312
+average loss train: 0.00019316598860314116
+average loss train: 0.0001775027912663063
+average loss train: 0.0001827091806626413
+average loss train: 0.00017817005689721555
+average loss train: 0.0001752490556827979
+average loss train: 0.00016783482402388472
+average loss train: 0.00016343718649295625
+Token-Level Accuracy (Teacher Forcing): 99.67%
