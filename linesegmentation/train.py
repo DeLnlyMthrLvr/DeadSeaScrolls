@@ -108,9 +108,6 @@ def train_level(
 
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
 
-    if experiment_folder is None and (experiment_name is not None):
-        experiment_folder = create_experiment_folder(experiment_name)
-
     if model is None:
         model = UNet()
         model = model.to(device)
@@ -139,6 +136,8 @@ def train_level(
 
 if __name__ == "__main__":
     model, optimizer =  train_level(pool = {0})
+    print("Starting noise trainig")
+    experiment_folder = create_experiment_folder()
     for _ in range(100):
         train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer)
 

@@ -28,7 +28,7 @@ class UNet(nn.Module):
     @staticmethod
     def conv_block(in_ch: int, out_ch: int) -> nn.Sequential:
         return nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, 3, padding=1),
+            nn.Conv2d(in_ch, out_ch, kernel_size=5, padding=2),
             nn.LeakyReLU(inplace=True)
         )
 
