@@ -21,8 +21,8 @@ class SynthSettings:
 
     margins: tuple[int, int] = (40, 40)
     allowed_portion_in_margin: float = 0.3
-    line_space: int = 10
-    line_seg_offset: int = 5
+    line_space: int = 5
+    line_seg_offset: int = 12
 
     cutout_noise: bool = False
     cutout_noise_size: int = 100
@@ -369,15 +369,15 @@ if __name__ == "__main__":
 
         fig.tight_layout()
 
-        img_lines = extract_lines_cc(scrolls[i], lines[i])
+        # img_lines = extract_lines_cc(scrolls[i], lines[i])
 
-        fig, axs = plt.subplots(len(img_lines), 1)
+        # fig, axs = plt.subplots(len(img_lines), 1)
 
-        if not isinstance(axs, np.ndarray):
-            axs = np.array([axs], dtype=object)
+        # if not isinstance(axs, np.ndarray):
+        #     axs = np.array([axs], dtype=object)
 
-        for ax, img_line in zip(axs.ravel(), img_lines, strict=True):
-            ax.imshow(img_line, cmap="binary")
+        # for ax, img_line in zip(axs.ravel(), img_lines, strict=True):
+        #     ax.imshow(img_line, cmap="binary")
 
 
 
