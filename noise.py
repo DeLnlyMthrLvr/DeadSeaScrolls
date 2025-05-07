@@ -61,8 +61,12 @@ def cutout_noise(
         height: int,
         width: int,
         num_shapes: tuple[int, int] = (1, 4),
-        radius: tuple[int, int] = (50, 150)
+        radius: int = 100,
+        radius_scale_factor = 0.6,
     ):
+
+    radius_scale = int(radius * radius_scale_factor)
+
     mask = np.zeros((height, width))
 
     n_shapes = random.randint(num_shapes[0], num_shapes[1] - 1)
@@ -70,7 +74,7 @@ def cutout_noise(
     heights = np.random.randint(0, height, n_shapes)
     widths = np.random.randint(0, width, n_shapes)
     angles = np.random.random(n_shapes) * 360
-    axes = np.random.randint(radius[0], radius[1], (n_shapes, 2))
+    axes = np.random.randint(radius - radius_scale, radius + radius_scale, (n_shapes, 2))
 
     for i in range(n_shapes):
         center = (widths[i], heights[i])
@@ -121,8 +125,10 @@ def warp_mask(
     )
 
     warped_line_mask = warped_line > 0.5
+    warped_line[warped_line_mask] = 1
+    warped_line[~warped_line_mask] = 0
 
-    return warped_scroll, warped_line_mask
+    return warped_scroll, warped_line
 
 
 
@@ -171,5 +177,4 @@ class Noise:
         images[mask] = 255
 
         return images
-
 
