@@ -119,7 +119,7 @@ def train_level(
         model = model.to(device)
 
     if optimizer is None:
-        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=3 * 1e-4)
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -147,5 +147,5 @@ def train_level(
 if __name__ == "__main__":
     model, optimizer, experiment_folder, best_loss =  train_level(pool = {0})
     for _ in range(5_000):
-        _, _, _, best_loss = train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder)
+        _, _, _, best_loss = train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder, best_loss=best_loss)
 
