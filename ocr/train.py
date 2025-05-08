@@ -21,10 +21,8 @@ import alphabet
 def ocr_collate_fn(batch, pad_token_id):
     images, targets = zip(*batch)
 
-    # Stack images into a tensor [batch_size, 1, H, W]
     images = torch.stack(images)
 
-    # Pad target sequences
     lengths = [len(t) for t in targets]
     max_len = max(lengths)
     padded_targets = torch.full((len(targets), max_len), pad_token_id, dtype=torch.long)
@@ -43,10 +41,9 @@ def evaluate_loss(model, criterion, dataloader, device):
             images = images.to(device)
             target_sequences = target_sequences.to(device)
 
-
             # Shift inputs for teacher forcing
-            tgt_input = target_sequences[:, :-1]     # [BOS, t, e, s, ...]
-            tgt_output = target_sequences[:, 1:]     # [t, e, s, ..., EOS]
+            tgt_input = target_sequences[:, :-1]
+            tgt_output = target_sequences[:, 1:]
 
             logits = model(images, tgt_input)  # (batch_size, seq_len, vocab_size)
             loss = criterion(logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1))
@@ -62,16 +59,24 @@ def save_scripts(save_dir):
     model_script = os.path.join(os.path.dirname(__file__), "ocr_model.py")
     shutil.copy(model_script, os.path.join(save_dir, "ocr_model.py"))
 
+    dataloader_script = os.path.join(os.path.dirname(__file__), "data_loader.py")
+    shutil.copy(dataloader_script, os.path.join(save_dir, "data_loader.py"))
+
 def log_metrics(save_dir, train_loss, validation_loss, validation_accuracy,
                  accuracy_teacher_forced, test_accuracy, test_accuracy_teacher_forced,
                   ngram_accuracy, ngram_token_accuracy, lr):
     log_file = os.path.join(save_dir, "metrics_log.txt")
 
-    line = f"Train Loss: {train_loss:.4f}, Validation Loss: {validation_loss:.4f}, \
-            Validation Accuracy: {validation_accuracy*100:.2f}%, accuracy teacher forced: {accuracy_teacher_forced:.2f}%, \
-            Learning rate: {lr: .8f}\n \
-            test accuracy: {test_accuracy*100:.4f}, test_accuracy_teacher_forced: {test_accuracy_teacher_forced:.4f} \n \
-            ngram accuracy: {ngram_accuracy*100:.4f}, ngram_accuracy_teacher_forced: {ngram_token_accuracy:4f}"
+    line = (
+    f"Train Loss: {train_loss:.4f}, Validation Loss: {validation_loss:.4f}, "
+    f"Validation Accuracy: {validation_accuracy * 100:.2f}%, "
+    f"Accuracy (Teacher Forced): {accuracy_teacher_forced:.2f}%, "
+    f"Learning Rate: {lr:.8f}\n"
+    f"Test Accuracy: {test_accuracy * 100:.2f}%, "
+    f"Test Accuracy (Teacher Forced): {test_accuracy_teacher_forced:.2f}\n"
+    f"N-Gram Accuracy: {ngram_accuracy * 100:.2f}%, "
+    f"N-Gram Accuracy (Teacher Forced): {ngram_token_accuracy:.2f}\n\n"
+    )
 
     with open(log_file, "a") as f:
         f.write(line)
@@ -79,10 +84,10 @@ def log_metrics(save_dir, train_loss, validation_loss, validation_accuracy,
 
 def train():
   patch_size = 16 
-  embedding_dimension = 384 #768 base
+  embedding_dimension = 192 #768 base
   encoder_layers = 12 #12 base
   decoder_layers = 6
-  num_heads = 6 #12 base
+  num_heads = 3 #12 base
   vocab_size = 30
   mlp_ratio = 4
   dropout = 0.1
@@ -98,7 +103,7 @@ def train():
   model = ocr_model.OCR(ViT, embedding_dimension, num_heads, decoder_layers, vocab_size, cross_attention_scale=cross_attention_scale)
   model = nn.DataParallel(model)
   criterion = nn.CrossEntropyLoss()
-  optimizer = optim.AdamW(model.parameters(), lr=0.00005, weight_decay=0.01)
+  optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
   device = torch.device('cuda')
   model.to(device)
   tokenizer = Tokenizer(alphabet.char_token)
@@ -131,7 +136,7 @@ def train():
 
   scheduler = LambdaLR(optimizer, lr_lambda)
   #model.load_state_dict(torch.load("/scratch/s3799042/weights/OCR/2025-05-07_12-46-57/model_weights.pth"))  
-  dataset_train = data_loader.ScrollLineMixedDatasetIterable(tokenizer, image_size)
+  dataset_train = data_loader.ScrollLineDatasetIterable(tokenizer, image_size)
   dataloader_train = DataLoader(dataset_train, batch_size = batch_size, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
   
   dataset_val = data_loader.ScrollLineDataset(parquet_normal_path, image_dir_normal, tokenizer)
@@ -151,7 +156,7 @@ def train_ocr(model, dataloader_train, dataloader_val, dataloader_test, dataload
     average_loss = 0
     count = 0
     print_after_n_batches = 100
-    save_after_n_batches = 1000
+    save_after_n_batches = 500
     for images, target_sequences in dataloader_train:
         if count > 0 and count % save_after_n_batches == 0:
             current_lr = optimizer.param_groups[0]['lr']
@@ -184,8 +189,8 @@ def train_ocr(model, dataloader_train, dataloader_val, dataloader_test, dataload
         optimizer.zero_grad()
 
         # Shift inputs for teacher forcing
-        tgt_input = target_sequences[:, :-1]     # [BOS, t, e, s, ...]
-        tgt_output = target_sequences[:, 1:]     # [t, e, s, ..., EOS]
+        tgt_input = target_sequences[:, :-1]   
+        tgt_output = target_sequences[:, 1:]     
 
         logits = model(images, tgt_input)  # (batch_size, seq_len, vocab_size)
         loss = criterion(logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1))
