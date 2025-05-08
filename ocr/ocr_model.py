@@ -170,12 +170,10 @@ class OCR(nn.Module):
     )
   
   def generate_causal_mask(self, seq_len: int, device: torch.device):
-    # Create an upper-triangular matrix of -inf, with zeros on and below the diagonal
     mask = torch.triu(torch.full((seq_len, seq_len), float('-inf')), diagonal=1)
     return mask.to(device)
 
   def forward(self, images, tgt_input):
-    # Used for training (parallel decoding with teacher forcing)
     encoder_output = self.ViT(images)
 
     tgt_embed = self.token_embedding(tgt_input)  # Embed the token IDs
@@ -189,7 +187,6 @@ class OCR(nn.Module):
     return logits
 
   def generate(self, images, max_length, bos_token_id, eos_token_id):
-    # Used for inference (step-by-step decoding)
     encoder_output = self.ViT(images)
     output_tokens = [bos_token_id]
     
