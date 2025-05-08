@@ -8,7 +8,10 @@ sea/
 /data/n_gram_images
 /linesegmentation/runs/*
 /data/sample-test-2025/*
-/linesegmentation/truns/*
+/seb/line_segmentation/truns/*
+/seb/line_segmentation/runs/*
+/seb/line_segmentation/checkpoints/*
+/seb/line_segmentation/final_models/*
 # C extensions
 *.so
 
