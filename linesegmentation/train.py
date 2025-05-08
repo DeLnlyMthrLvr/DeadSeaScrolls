@@ -14,8 +14,6 @@ from torch.utils.data import Dataset, DataLoader
 import tqdm
 from noise_designer import load_batches
 from unet import UNet
-from torch.utils.tensorboard import SummaryWriter
-
 import random
 
 def create_experiment_folder(name: str = "run") -> Path:
@@ -51,7 +49,7 @@ class LineSegmentationDataset(Dataset):
 
     def __getitem__(self, index):
         scrolls = torch.tensor(self.scrolls[index], dtype=torch.float32).unsqueeze(0)
-        scrolls = 1- (scrolls / 255)
+        scrolls = 1 - (scrolls / 255)
         lines = torch.tensor(self.lines[index], dtype=torch.float32).unsqueeze(0)
         return scrolls, lines
 
@@ -61,7 +59,7 @@ def train_epoch(
     validation_data: LineSegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 128,
+    batch_size: int = 256,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -78,7 +76,6 @@ def train_epoch(
         track_loss.append(loss.item())
 
         optimizer.zero_grad()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         loss.backward()
         optimizer.step()
 
@@ -100,22 +97,29 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "unet",
-        epoch: int | None = None,
+        experiment_name: str | None = "wide_unet_largek_fixed",
         best_loss: float = float("inf")
     ):
 
     level = random.choice(list(pool))
-    print(f"------------------Noise Level {level}------------------")
+    print(f"noise_{level}")
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
+
+    val_scrolls = val_scrolls[:1000]
+    val_lines = val_lines[:1000]
+
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
+
+    if experiment_folder is None and (experiment_name is not None):
+        experiment_folder = create_experiment_folder(experiment_name)
+
     if model is None:
         model = UNet()
         model = model.to(device)
 
     if optimizer is None:
-        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4*2)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -128,13 +132,6 @@ def train_level(
             optimizer,
             criterion
         )
-        model.save(experiment_folder)
-        with open(experiment_folder / "loss.txt", "a") as f:
-            f.write(f"{train_loss:.4f},{val_loss:.4f}\n")
-        writer.add_scalar("Loss/Train", train_loss, epoch)
-        writer.add_scalar("Loss/Validation", val_loss, epoch)
-        if verbose > 0:
-            print(f"Losss {train_loss:.4f}, {val_loss:.4f}")
 
         if val_loss < best_loss:
             model.save(experiment_folder)
@@ -148,11 +145,6 @@ def train_level(
     return model, optimizer, experiment_folder, best_loss
 
 if __name__ == "__main__":
-    experiment_folder = create_experiment_folder()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    writer = SummaryWriter(log_dir=f"truns/{timestamp}_run")
-    model, optimizer, experiment_folder, best_loss =  train_level(pool = {0}, experiment_folder=experiment_folder)
-    print("Starting noise trainig")
-    for epoch in range(200):
-        _,_,best_loss = train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder, best_loss=best_loss,epoch=epoch)
-
+    model, optimizer, experiment_folder, best_loss =  train_level(pool = {0})
+    for _ in range(5_000):
+        _, _, _, best_loss = train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder)
