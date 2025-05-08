@@ -59,8 +59,6 @@ class UNet(nn.Module):
         return self.final(d1)
 
     def save(self, folder: Path, name: str = "unet.pt", optimizer: torch.optim.Optimizer | None = None):
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        name = name + timestamp
         torch.save(
             {
                 "model_state_dict": self.state_dict(),
