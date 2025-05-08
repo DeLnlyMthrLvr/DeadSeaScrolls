@@ -13,7 +13,7 @@ from torch.optim import Optimizer
 from torch.utils.data import Dataset, DataLoader
 import tqdm
 from noise_designer import load_batches
-from unet import UNet
+from DeadSeaScrolls.seb.line_seg.unet_line import UNet
 from torch.utils.tensorboard import SummaryWriter
 
 import random
