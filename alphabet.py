@@ -119,7 +119,7 @@ def load_n_grams() -> tuple[Ngrams, np.ndarray, np.ndarray]:
     ngrams = []
     for names in df["Names"]:
         list_names = names.split("_")
-        ngrams.append(tuple(reversed(str_to_enum[name] for name in list_names)))
+        ngrams.append(tuple(reversed([str_to_enum[name] for name in list_names])))
 
     frequencies = df["Frequencies"].to_numpy()
     ngram_tokens = np.arange(len(ngrams))
