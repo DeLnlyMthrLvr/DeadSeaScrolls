@@ -8,7 +8,7 @@ sea/
 /data/n_gram_images
 /linesegmentation/runs/*
 /data/sample-test-2025/*
-
+/linesegmentation/truns/*
 # C extensions
 *.so
 

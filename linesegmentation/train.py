@@ -61,7 +61,7 @@ def train_epoch(
     validation_data: LineSegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 256,
+    batch_size: int = 128,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -101,7 +101,8 @@ def train_level(
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
         experiment_name: str | None = "unet",
-        epoch: int | None = None
+        epoch: int | None = None,
+        best_loss: float = float("inf")
     ):
 
     level = random.choice(list(pool))
@@ -109,7 +110,6 @@ def train_level(
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines = next(iterator)
     val_data = LineSegmentationDataset(val_scrolls, val_lines)
-
     if model is None:
         model = UNet()
         model = model.to(device)
@@ -151,8 +151,8 @@ if __name__ == "__main__":
     experiment_folder = create_experiment_folder()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     writer = SummaryWriter(log_dir=f"truns/{timestamp}_run")
-    model, optimizer =  train_level(pool = {0}, experiment_folder=experiment_folder)
+    model, optimizer, experiment_folder, best_loss =  train_level(pool = {0}, experiment_folder=experiment_folder)
     print("Starting noise trainig")
     for epoch in range(200):
-        train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder, epoch=epoch)
+        _,_,best_loss = train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder, best_loss=best_loss,epoch=epoch)
 
