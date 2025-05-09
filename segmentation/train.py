@@ -17,7 +17,7 @@ from unet import UNet
 import random
 
 from alphabet import char_to_token
-n_tokens = len(char_to_token) - 1
+n_tokens = len(char_to_token)
 
 def create_experiment_folder(name: str = "seg") -> Path:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -82,6 +82,16 @@ def extract_lines_segs_cc(
 
     return lines, segs
 
+def symmetric_pad(tensor, target_h, target_w):
+    h, w = tensor.shape[-2], tensor.shape[-1]
+    pad_h = target_h - h
+    pad_w = target_w - w
+    pad = [
+        pad_w // 2, pad_w - pad_w // 2,
+        pad_h // 2, pad_h - pad_h // 2
+    ]
+    return F.pad(tensor, pad, value=0)
+
 class SegmentationDataset(Dataset):
     def __init__(self, scrolls: np.ndarray, segs: np.ndarray, lines: np.ndarray):
 
@@ -93,33 +103,23 @@ class SegmentationDataset(Dataset):
             self.line_images.extend(li)
             self.line_segmentations.extend(ls)
 
-        self.line_images = [1 - (torch.from_numpy(img).float() / 255) for img in self.line_images]
-        self.line_segmentations = [torch.from_numpy(seg).float() for seg in self.line_segmentations]
+        self.max_h = max(img.shape[-2] for img in self.line_images)
+        self.max_w = max(img.shape[-1] for img in self.line_images)
 
-        max_h = max(img.shape[-2] for img in self.line_images)
-        max_w = max(img.shape[-1] for img in self.line_images)
-
-        def symmetric_pad(tensor, target_h, target_w):
-            h, w = tensor.shape[-2], tensor.shape[-1]
-            pad_h = target_h - h
-            pad_w = target_w - w
-            pad = [
-                pad_w // 2, pad_w - pad_w // 2,
-                pad_h // 2, pad_h - pad_h // 2
-            ]
-            return F.pad(tensor, pad, value=0)
-
-        self.line_images = [symmetric_pad(img, max_h, max_w) for img in self.line_images]
-        self.line_segmentations = [symmetric_pad(seg, max_h, max_w) for seg in self.line_segmentations]
-
-        self.line_images = torch.stack(self.line_images)
-        self.line_segmentations = torch.stack(self.line_segmentations)
 
     def __len__(self):
         return len(self.line_images)
 
     def __getitem__(self, index):
-        return self.line_images[index], self.line_segmentations[index]
+
+        li = torch.tensor(self.line_images[index], dtype=torch.float).unsqueeze(0)
+        li = 1 - (li / 255)
+        li = symmetric_pad(li, self.max_h, self.max_w)
+
+        sm = torch.tensor(self.line_segmentations[index], dtype=torch.float)
+        sm = symmetric_pad(sm, self.max_h, self.max_w)
+
+        return li, sm
 
 def train_epoch(
     model: UNet,
@@ -127,7 +127,7 @@ def train_epoch(
     validation_data: SegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 64,
+    batch_size: int = 35,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -174,6 +174,10 @@ def train_level(
     iterator = load_batches(level=level)
     _, val_scrolls, val_lines, val_seg = next(iterator)
 
+    val_scrolls = val_scrolls[:100]
+    val_lines = val_lines[:100]
+    val_seg = val_seg[:100]
+
     val_data = SegmentationDataset(val_scrolls, val_seg, val_lines)
 
     if experiment_folder is None and (experiment_name is not None):
@@ -204,8 +208,9 @@ def train_level(
 
         with open(experiment_folder / "loss.txt", "a") as f:
             f.write(f"{train_loss:.4f},{val_loss:.4f}\n")
+
         if verbose > 0:
-            print(f"Loss {train_loss:.4f}, {val_loss:.4f}")
+            print(f"Loss {train_loss:.4f},{val_loss:.4f}")
 
     return model, optimizer, experiment_folder, best_loss
 
