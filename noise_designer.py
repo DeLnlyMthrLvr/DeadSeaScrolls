@@ -230,8 +230,12 @@ def generate_data(
 #         for _ in pool.imap_unordered(_run_level, level_args):
 #             ...
 
-def load_batches(level: int):
-    level_path = Path(__file__).parent / "data" / "scrolls" / f"level_{level}"
+def load_batches(level: int, base_path: str = ""):
+    level_path = ""
+    if base_path == "":
+        level_path = Path(__file__).parent / "data" / "scrolls" / f"level_{level}"
+    else:
+        level_path = os.path.join(base_path, f"level_{level}")
     chunks = sorted(
         level_path.glob("chunk_*.npz"),
         key=lambda p: int(p.stem.split("_")[1])

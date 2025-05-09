@@ -1,0 +1,41 @@
+
+###############################################################################
+Hábrók Cluster
+Job 17137025 for user s3799042
+Finished at: Fri May  9 17:29:39 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17137025
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : a100gpu6
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : FAILED  
+Submit                         : 2025-05-09T17:29:00
+Start                          : 2025-05-09T17:29:08
+End                            : 2025-05-09T17:29:35
+Reserved walltime              : 02:00:00
+Used walltime                  : 00:00:27
+Used CPU time                  : 00:00:10 (Efficiency:  4.83%)
+% User (Computation)           : 81.54%
+% System (I/O)                 : 18.46%
+Total memory reserved          : 32G
+Maximum memory used            : 0.00 
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 0%
+Max GPU memory used            : 0.00 
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################
