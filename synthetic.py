@@ -21,7 +21,7 @@ class SynthSettings:
     margins: tuple[int, int] = (40, 40)
     allowed_portion_in_margin: float = 0.3
     line_space: int = 5
-    line_seg_offset: int = 12
+    line_seg_offset: int = 8
 
     cutout_noise: bool = False
     cutout_noise_size: int = 100
