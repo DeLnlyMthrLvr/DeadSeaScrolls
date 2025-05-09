@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class UNet(nn.Module):
-    def __init__(self, num_classes: int, base_ch=22):
+    def __init__(self, num_classes: int, base_ch=15):
         super().__init__()
 
         self.r = 2
@@ -11,29 +11,35 @@ class UNet(nn.Module):
         self.enc1 = self.conv_block(1, base_ch)
         self.enc2 = self.conv_block(base_ch, base_ch*2)
         self.enc3 = self.conv_block(base_ch*2, base_ch*4)
-        self.enc4 = self.conv_block(base_ch*4, base_ch*8)
+        self.enc4 = self.conv_block(base_ch*4, base_ch*6)
 
         self.bottleneck = nn.Sequential(
-            nn.Conv2d(base_ch * 8, base_ch * 8, kernel_size=5, padding=2),
+            nn.Conv2d(base_ch * 6, base_ch * 6, kernel_size=5, padding=2),
             nn.LeakyReLU(),
         )
 
-        self.dec4 = self.dec_conv_block(base_ch * 8, base_ch * 4)
+        self.dec4 = self.dec_conv_block(base_ch * 6, base_ch * 4)
         self.dec3 = self.dec_conv_block(base_ch * 4, base_ch * 2)
-        self.dec2 = self.dec_conv_block(base_ch * 2, base_ch)
-        self.dec1 = self.dec_conv_block(base_ch, base_ch)
+        self.dec2 = self.dec_conv_block(base_ch * 2, num_classes)
+        self.dec1 = self.dec_conv_block(None, num_classes, num_classes + base_ch)
 
-        self.final = nn.Conv2d(base_ch, num_classes, kernel_size=1)
+        self.final = nn.Conv2d(num_classes, num_classes, kernel_size=1)
 
     def conv_block(self, in_ch, out_ch):
+
+
         return nn.Sequential(
             nn.Conv2d(in_ch, out_ch, 5, padding=2),
             nn.LeakyReLU(inplace=True)
         )
 
-    def dec_conv_block(self, in_ch: int, out_ch: int) -> nn.Sequential:
+    def dec_conv_block(self, in_ch: int, out_ch: int, actual_in: int = None) -> nn.Sequential:
+
+        if actual_in is None:
+            actual_in = in_ch * 2
+
         return nn.Sequential(
-            nn.Conv2d(in_ch * 2, out_ch * (self.r ** 2), kernel_size=5, padding=2),
+            nn.Conv2d(actual_in, out_ch * (self.r ** 2), kernel_size=5, padding=2),
             nn.PixelShuffle(upscale_factor=self.r),
             nn.LeakyReLU(),
         )
@@ -58,8 +64,8 @@ class UNet(nn.Module):
         d4 = self.dec4(d4)
 
         d4 = self._pad(d4, e3)
-        d3 = torch.cat((e3, d3), dim=1)
-        d3 = self.dec2(d3)
+        d3 = torch.cat((e3, d4), dim=1)
+        d3 = self.dec3(d3)
 
         d3 = self._pad(d3, e2)
         d2 = torch.cat((e2, d3), dim=1)
