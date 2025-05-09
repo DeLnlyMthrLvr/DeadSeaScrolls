@@ -368,8 +368,8 @@ if __name__ == "__main__":
     #     cutout_size=(20, 120)
     # )
 
-    # generate_data_mp()
+    generate_data_mp()
 
-    generate_data()
+    # generate_data()
 
     # next(load_batches(0))
