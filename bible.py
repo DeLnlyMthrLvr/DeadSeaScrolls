@@ -7,12 +7,10 @@ from asyncio import Queue
 import unicodedata
 import pickle
 
-import numpy as np
-
 def strip_diacritics(text):
     return ''.join(c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn')
 
-from alphabet import A
+from alphabet import A, hebrew_to_enum
 
 base_url = "https://scholarlyeditions.brill.com/library/passage/urn:cts:ancJewLit:hebBible.genesis.dsbo-leningrad:{}/text/"
 data_dir = Path(__file__).parent / "data" / "bible"
@@ -48,35 +46,6 @@ def download():
     data_dir.mkdir(parents=True, exist_ok=True)
     asyncio.run(async_download())
 
-hebrew_to_enum = {
-    'א': A.Alef,
-    'ע': A.Ayin,
-    'ב': A.Bet,
-    'ד': A.Dalet,
-    'ג': A.Gimel,
-    'ה': A.He,
-    'ח': A.Het,
-    'כ': A.Kaf,
-    'ך': A.Kaf_final,
-    'ל': A.Lamed,
-    'ם': A.Mem,
-    'מ': A.Mem_medial,
-    'ן': A.Nun_final,
-    'נ': A.Nun_medial,
-    'פ': A.Pe,
-    'ף': A.Pe_final,
-    'ק': A.Qof,
-    'ר': A.Resh,
-    'ס': A.Samekh,
-    'ש': A.Shin,
-    'ת': A.Taw,
-    'ט': A.Tet,
-    'ץ': A.Tsadi_final,
-    'צ': A.Tsadi_medial,
-    'ו': A.Waw,
-    'י': A.Yod,
-    'ז': A.Zayin
-}
 
 EXTRA_FILTER = {
     '׃', '־', '׀', '[', ']', '\n', '\xa0', '\u202a', '\u202c'

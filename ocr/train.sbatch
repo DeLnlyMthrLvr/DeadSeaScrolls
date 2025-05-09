@@ -2,10 +2,11 @@
 #SBATCH --job-name=ocr_training
 #SBATCH --output=logs/ocr_training_%j.out
 #SBATCH --error=logs/ocr_training_%j.err
-#SBATCH --gres=gpu:a100:1
+#SBATCH --partition=gpu
+#SBATCH --gpus-per-node=v100:1
 #SBATCH --mem=32G
 #SBATCH --nodes=1
-#SBATCH --time=1:30:00
+#SBATCH --time=2:00:00
 
 # Load necessary modules (optional, depends on your cluster)
 module load CUDA/12.4.0

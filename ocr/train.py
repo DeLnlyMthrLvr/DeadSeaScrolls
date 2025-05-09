@@ -84,10 +84,10 @@ def log_metrics(save_dir, train_loss, validation_loss, validation_accuracy,
 
 def train():
   patch_size = 16 
-  embedding_dimension = 192 #768 base
+  embedding_dimension = 384 #768 base
   encoder_layers = 12 #12 base
   decoder_layers = 6
-  num_heads = 3 #12 base
+  num_heads = 6 #12 base
   vocab_size = 30
   mlp_ratio = 4
   dropout = 0.1
@@ -124,8 +124,8 @@ def train():
   os.makedirs(save_dir, exist_ok=True)
   save_scripts(save_dir)
 
-  num_training_steps = 15_000
-  num_warmup_steps = int(0.1 * num_training_steps)
+  num_training_steps = 15_000_000
+  num_warmup_steps = int(0.02 * num_training_steps)
 
   def lr_lambda(current_step):
     if current_step < num_warmup_steps:

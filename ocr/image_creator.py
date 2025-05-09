@@ -16,9 +16,9 @@ import synthetic
 def pad(image: Image.Image, image_size: tuple):
     factor_height = image.height / image_size[0] 
     factor_width = image.width / image_size[1]
-
+    #left,top,right,bottom
     if factor_height * image_size[1] > image.width:
-        padding = (0,0,(int)(factor_height * image_size[1] - image.width), 0)
+        padding = ((int)(factor_height * image_size[1] - image.width),0,0, 0)
         return F.pad(image, padding, fill=255)
     if factor_width * image_size[0] > image.height:
         padding = (0,0,0,(int)(factor_width * image_size[0] - image.height))
