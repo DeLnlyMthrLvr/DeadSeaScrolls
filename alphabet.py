@@ -77,6 +77,39 @@ char_token = {
     A.Space: 27
 }
 
+hebrew_to_enum = {
+    'א': A.Alef,
+    'ע': A.Ayin,
+    'ב': A.Bet,
+    'ד': A.Dalet,
+    'ג': A.Gimel,
+    'ה': A.He,
+    'ח': A.Het,
+    'כ': A.Kaf,
+    'ך': A.Kaf_final,
+    'ל': A.Lamed,
+    'ם': A.Mem,
+    'מ': A.Mem_medial,
+    'ן': A.Nun_final,
+    'נ': A.Nun_medial,
+    'פ': A.Pe,
+    'ף': A.Pe_final,
+    'ק': A.Qof,
+    'ר': A.Resh,
+    'ס': A.Samekh,
+    'ש': A.Shin,
+    'ת': A.Taw,
+    'ט': A.Tet,
+    'ץ': A.Tsadi_final,
+    'צ': A.Tsadi_medial,
+    'ו': A.Waw,
+    'י': A.Yod,
+    'ז': A.Zayin
+}
+
+enum_to_hebrew = {v: k for k, v in hebrew_to_enum.items()}
+token_to_char = {token: enum_to_hebrew[enum] for enum, token in char_token.items() if (enum != A.Space)}
+
 def alphabet_path(cropped: bool = True):
     return Path(__file__).parent / "data" / ("alphabet_cropped" if cropped else "alphabet")
 

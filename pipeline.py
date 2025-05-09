@@ -56,7 +56,7 @@ def write_results(names: list[str], transcriptions: list[str]):
     print(f"Results located in {str(folder.relative_to(folder.parent.parent))}")
 
 
-def dummy_transformer(all_line_images: list[list[np.ndarray]]) -> list[str]:
+def dummy_transformer(all_line_images: list[list[np.ndarray]]) -> list[list[int]]:
     from bible import hebrew_to_enum
     from alphabet import MEAN_CHAR_WIDTH
 
