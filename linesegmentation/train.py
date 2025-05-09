@@ -2,7 +2,6 @@ from pathlib import Path
 import numpy as np
 from datetime import datetime
 import sys
-import cv2
 
 sys.path.append("..")
 sys.path.append(str(Path(__file__).parent.parent))
@@ -13,7 +12,7 @@ from torch.optim import Optimizer
 from torch.utils.data import Dataset, DataLoader
 import tqdm
 from noise_designer import load_batches
-from unet import UNet
+from unet import LineSegmenter, LineSegmentationDataset
 import random
 
 def create_experiment_folder(name: str = "run") -> Path:
@@ -25,36 +24,9 @@ def create_experiment_folder(name: str = "run") -> Path:
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 verbose: int = 2
 
-def resize(imgs: np.ndarray, factor: float):
-
-    height, width = imgs.shape[1:]
-    nh = int(height * factor)
-    nw = int(width * factor)
-
-    new_imgs = []
-    for img in imgs:
-        ri = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_AREA)
-        new_imgs.append(ri)
-
-    return np.stack(new_imgs)
-
-class LineSegmentationDataset(Dataset):
-    def __init__(self, scrolls: np.ndarray, line: np.ndarray):
-        factor = np.random.uniform(0.4, 0.6)
-        self.scrolls = resize(scrolls, factor=factor)
-        self.lines = resize(line, factor=factor)
-
-    def __len__(self):
-        return self.scrolls.shape[0]
-
-    def __getitem__(self, index):
-        scrolls = torch.tensor(self.scrolls[index], dtype=torch.float32).unsqueeze(0)
-        scrolls = 1 - (scrolls / 255)
-        lines = torch.tensor(self.lines[index], dtype=torch.float32).unsqueeze(0)
-        return scrolls, lines
 
 def train_epoch(
-    model: UNet,
+    model: LineSegmenter,
     train_data: LineSegmentationDataset,
     validation_data: LineSegmentationDataset,
     optimizer: Optimizer,
@@ -94,7 +66,7 @@ def train_epoch(
 
 def train_level(
         pool: set,
-        model: UNet | None = None,
+        model: LineSegmenter | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
         experiment_name: str | None = "wide_unet_largek_fixed",
@@ -115,7 +87,7 @@ def train_level(
         experiment_folder = create_experiment_folder(experiment_name)
 
     if model is None:
-        model = UNet()
+        model = LineSegmenter()
         model = model.to(device)
 
     if optimizer is None:
