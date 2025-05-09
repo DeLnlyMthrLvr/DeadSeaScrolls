@@ -182,6 +182,8 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+trocr-hebrew-finetuned/*
+
 ocr/logs/*
 model_weights.pth
 data/test_images_ocr/*
