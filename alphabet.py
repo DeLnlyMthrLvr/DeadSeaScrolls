@@ -109,6 +109,7 @@ hebrew_to_enum = {
 
 enum_to_hebrew = {v: k for k, v in hebrew_to_enum.items()}
 token_to_char = {token: enum_to_hebrew[enum] for enum, token in char_token.items() if (enum != A.Space)}
+char_to_token = {v: k for k, v, in token_to_char.items()}
 
 def alphabet_path(cropped: bool = True):
     return Path(__file__).parent / "data" / ("alphabet_cropped" if cropped else "alphabet")
