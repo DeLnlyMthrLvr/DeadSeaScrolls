@@ -62,13 +62,13 @@ def display_progression(
     plt.show()
 
 def generate_data(
-    n_progress: int = 5,
-    n_variations: int = 12_000,
+    n_progress: int = 3,
+    n_variations: int = 500,
     perlin_strength: tuple[float, float] = (0.2, 0.25),
     warp_strength: tuple[float, float] = (0, 10),
     cutout_size: tuple[int, int] = (20, 120),
-    batch_size: int = 2_000,
-    n_noise_masks: int = 30
+    batch_size: int = 250,
+    n_noise_masks: int = 3
 ):
 
     data_folder = Path(__file__).parent / "data" / "scrolls"
@@ -107,7 +107,7 @@ def generate_data(
 
             for i_batch in range(n_batches_per_variation):
 
-                tokens, _, scrolls, lines = generator.generate_passages_scrolls(batch_size)
+                tokens, segmentation, scrolls, lines = generator.generate_passages_scrolls(batch_size, skip_char_seg=False)
 
                 if p > 0:
                     scrolls = noise.damage(scrolls, strength=p)
@@ -121,10 +121,122 @@ def generate_data(
                 np.savez_compressed(
                     file_base / f"{name}.npz",
                     scrolls=scrolls.astype(np.uint8, copy=False),
-                    line_masks=lines.astype(np.uint8, copy=False)
+                    line_masks=lines.astype(np.uint8, copy=False),
+                    segmentation=segmentation.astype(np.uint8, copy=False)
                 )
 
                 pbar.update()
+
+
+def _run_level(level_args: tuple):
+    """Worker that generates all batches for one noise level.
+
+    Parameters
+    ----------
+    level_args : tuple
+        (level_idx, p_strength, w_strength, c_size,
+         batch_size, n_batches_per_variation,
+         downscale, n_noise_masks, data_folder)
+    """
+
+    (
+        level,
+        p,
+        w,
+        c,
+        batch_size,
+        n_batches_per_variation,
+        downscale,
+        n_noise_masks,
+        data_folder,
+    ) = level_args
+
+    from synthetic import DataGenerator, SynthSettings, load_alphabet
+    from noise import Noise
+
+    alphabet = load_alphabet()
+
+    settings = SynthSettings(
+        warp_noise=w > 0,
+        warp_noise_strength=w,
+        cutout_noise=c > 0,
+        cutout_noise_size=c,
+        downscale_factor=downscale,
+    )
+    generator = DataGenerator(settings, alphabet)
+
+    noise = Noise(settings.downscale_size)
+    noise.create_masks(N=n_noise_masks)
+
+    noise_folder = data_folder / f"level_{level}"
+    noise_folder.mkdir(parents=True, exist_ok=True)
+
+    for i_batch in range(n_batches_per_variation):
+        tokens, segmentation, scrolls, lines = generator.generate_passages_scrolls(batch_size, skip_char_seg=False)
+
+        if p > 0:
+            scrolls = noise.damage(scrolls, strength=p)
+
+        name = f"chunk_{i_batch}"
+        with open(noise_folder / f"{name}.pickle", "wb") as f:
+            pickle.dump(tokens, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+        np.savez_compressed(
+            noise_folder / f"{name}.npz",
+            scrolls=scrolls.astype(np.uint8, copy=False),
+            line_masks=lines.astype(np.uint8, copy=False),
+            segmentation=segmentation.astype(np.uint8, copy=False)
+        )
+
+        print(f"Level {level} – batch {i_batch + 1}/{n_batches_per_variation}")
+
+def generate_data_mp(
+    n_progress: int = 5,
+    n_variations: int = 15_000,
+    perlin_strength: tuple[float, float] = (0.2, 0.25),
+    warp_strength: tuple[float, float] = (0, 10),
+    cutout_size: tuple[int, int] = (20, 120),
+    batch_size: int = 500,
+    n_noise_masks: int = 30,
+    n_workers: int = 5,
+):
+
+    mp.set_start_method("spawn", force=True)
+
+    data_folder = Path(__file__).parent / "data" / "scrolls_seg"
+    data_folder.mkdir(parents=True, exist_ok=True)
+
+    downscale = 0.5
+    n_batches_per_variation = n_variations // batch_size
+
+    # Pre‑compute schedules for every noise level
+    ps = np.linspace(perlin_strength[0], perlin_strength[1], n_progress)
+    ws = np.linspace(warp_strength[0], warp_strength[1], n_progress).round().astype(int)
+    cs = np.linspace(cutout_size[0], cutout_size[1], n_progress).round().astype(int)
+
+    # Build argument tuples, one per future worker
+    level_args = [
+        (
+            level,
+            float(p),
+            int(w),
+            int(c),
+            batch_size,
+            n_batches_per_variation,
+            downscale,
+            n_noise_masks,
+            data_folder,
+        )
+        for level, (p, w, c) in enumerate(zip(ps, ws, cs, strict=True))
+    ]
+
+
+    print(f"Spawning {n_workers} worker process(es)…")
+    with mp.Pool(processes=n_workers) as pool:
+        for _ in tqdm.tqdm(pool.imap_unordered(_run_level, level_args), total=n_progress):
+            pass
+
+
 
 
 # def _run_level(level_args: tuple):
@@ -246,11 +358,11 @@ def load_batches(level: int, base_path: str = ""):
         chunk = int(chunk_path.stem.split("_")[1])
 
         with open(base / f"chunk_{chunk}.pickle", "rb") as f:
-            tokens = pickle.load(f)
+            tokens: list[list[str]] = pickle.load(f) # not tokens but characters (batch, n_lines, sequence)
 
         data = np.load(chunk_path)
-        scrolls = data["scrolls"]
-        line_masks = data["line_masks"]
+        scrolls: np.ndarray = data["scrolls"] # (batch, h, w)
+        line_masks: np.ndarray = data["line_masks"] # (batch, h, w)
         yield tokens, scrolls, line_masks
 
 if __name__ == "__main__":
@@ -260,6 +372,8 @@ if __name__ == "__main__":
     #     cutout_size=(20, 120)
     # )
 
-    generate_data()
+    generate_data_mp()
+
+    # generate_data()
 
     # next(load_batches(0))
