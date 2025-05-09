@@ -50,7 +50,7 @@ def write_results(names: list[str], transcriptions: list[str]):
 
     for name, transcription in zip(names, transcriptions, strict=True):
 
-        with open(folder / f"{name}_characters.txt", "w") as f:
+        with open(folder / f"{name}_characters.txt", "w", encoding="utf-8") as f:
             f.write(transcription)
 
     print(f"Results located in {str(folder.relative_to(folder.parent.parent))}")
@@ -71,7 +71,7 @@ def dummy_transformer(all_line_images: list[list[np.ndarray]]) -> list[str]:
             h, w = line_image.shape
             n = int(round(w / MEAN_CHAR_WIDTH))
             chars = np.random.choice(characters, size=n, replace=True)
-
+            chars = ''.join(chars)
             transcription.append(chars)
 
         transcriptions.append('\n'.join(transcription))

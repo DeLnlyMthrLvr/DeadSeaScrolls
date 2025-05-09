@@ -8,7 +8,10 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import cv2
 
-import floodfil
+import sys
+sys.path.append(str(Path(__file__).parent.parent))
+
+import linesegmentation.floodfil as floodfil
 
 def resize(imgs: np.ndarray, factor: float):
 
