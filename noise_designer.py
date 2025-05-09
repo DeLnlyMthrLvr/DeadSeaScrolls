@@ -62,13 +62,13 @@ def display_progression(
     plt.show()
 
 def generate_data(
-    n_progress: int = 5,
-    n_variations: int = 60_000,
+    n_progress: int = 3,
+    n_variations: int = 500,
     perlin_strength: tuple[float, float] = (0.2, 0.25),
     warp_strength: tuple[float, float] = (0, 10),
     cutout_size: tuple[int, int] = (20, 120),
-    batch_size: int = 2_000,
-    n_noise_masks: int = 30
+    batch_size: int = 250,
+    n_noise_masks: int = 3
 ):
 
     data_folder = Path(__file__).parent / "data" / "scrolls"
@@ -107,7 +107,7 @@ def generate_data(
 
             for i_batch in range(n_batches_per_variation):
 
-                tokens, _, scrolls, lines = generator.generate_passages_scrolls(batch_size)
+                tokens, segmentation, scrolls, lines = generator.generate_passages_scrolls(batch_size, skip_char_seg=False)
 
                 if p > 0:
                     scrolls = noise.damage(scrolls, strength=p)
@@ -121,7 +121,8 @@ def generate_data(
                 np.savez_compressed(
                     file_base / f"{name}.npz",
                     scrolls=scrolls.astype(np.uint8, copy=False),
-                    line_masks=lines.astype(np.uint8, copy=False)
+                    line_masks=lines.astype(np.uint8, copy=False),
+                    segmentation=segmentation.astype(np.uint8, copy=False)
                 )
 
                 pbar.update()
@@ -171,7 +172,7 @@ def _run_level(level_args: tuple):
     noise_folder.mkdir(parents=True, exist_ok=True)
 
     for i_batch in range(n_batches_per_variation):
-        tokens, _, scrolls, lines = generator.generate_passages_scrolls(batch_size)
+        tokens, segmentation, scrolls, lines = generator.generate_passages_scrolls(batch_size, skip_char_seg=False)
 
         if p > 0:
             scrolls = noise.damage(scrolls, strength=p)
@@ -184,24 +185,25 @@ def _run_level(level_args: tuple):
             noise_folder / f"{name}.npz",
             scrolls=scrolls.astype(np.uint8, copy=False),
             line_masks=lines.astype(np.uint8, copy=False),
+            segmentation=segmentation.astype(np.uint8, copy=False)
         )
 
         print(f"Level {level} – batch {i_batch + 1}/{n_batches_per_variation}")
 
 def generate_data_mp(
     n_progress: int = 5,
-    n_variations: int = 60_000,
+    n_variations: int = 15_000,
     perlin_strength: tuple[float, float] = (0.2, 0.25),
     warp_strength: tuple[float, float] = (0, 10),
     cutout_size: tuple[int, int] = (20, 120),
-    batch_size: int = 5_000,
+    batch_size: int = 500,
     n_noise_masks: int = 30,
     n_workers: int = 5,
 ):
 
     mp.set_start_method("spawn", force=True)
 
-    data_folder = Path(__file__).parent / "data" / "scrolls"
+    data_folder = Path(__file__).parent / "data" / "scrolls_seg"
     data_folder.mkdir(parents=True, exist_ok=True)
 
     downscale = 0.5
@@ -352,11 +354,11 @@ def load_batches(level: int):
         chunk = int(chunk_path.stem.split("_")[1])
 
         with open(base / f"chunk_{chunk}.pickle", "rb") as f:
-            tokens = pickle.load(f)
+            tokens: list[list[str]] = pickle.load(f) # not tokens but characters (batch, n_lines, sequence)
 
         data = np.load(chunk_path)
-        scrolls = data["scrolls"]
-        line_masks = data["line_masks"]
+        scrolls: np.ndarray = data["scrolls"] # (batch, h, w)
+        line_masks: np.ndarray = data["line_masks"] # (batch, h, w)
         yield tokens, scrolls, line_masks
 
 if __name__ == "__main__":
@@ -366,6 +368,8 @@ if __name__ == "__main__":
     #     cutout_size=(20, 120)
     # )
 
-    generate_data_mp()
+    # generate_data_mp()
+
+    generate_data()
 
     # next(load_batches(0))
