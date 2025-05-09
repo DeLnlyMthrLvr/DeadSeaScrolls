@@ -1,12 +1,17 @@
+from pathlib import Path
+from typing import Self
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 class UNet(nn.Module):
-    def __init__(self, num_classes: int, base_ch=15):
+    def __init__(self, num_classes: int, base_ch: int=15):
         super().__init__()
 
         self.r = 2
+
+        self.num_classes = num_classes
+        self.base_ch = base_ch
 
         self.enc1 = self.conv_block(1, base_ch)
         self.enc2 = self.conv_block(base_ch, base_ch*2)
@@ -77,3 +82,34 @@ class UNet(nn.Module):
 
         d1 = self._pad(d1, x)
         return self.final(d1)
+
+
+    def save(self, folder: Path, name: str = "unet.pt", optimizer: torch.optim.Optimizer | None = None):
+
+        torch.save(
+            {
+                "model_state_dict": self.state_dict(),
+                "optimizer_state_dict": None if optimizer is None else optimizer.state_dict(),
+                "base_ch": self.base_ch,
+                "num_classes": self.num_classes
+            },
+            folder / name
+        )
+
+    @classmethod
+    def load(cls, folder: Path, name: str = "unet.pt", optimizer: torch.optim.Optimizer | None = None) -> Self:
+
+        cp = torch.load(folder / name, weights_only=False)
+
+        msd = cp.pop("model_state_dict")
+        osd = cp.pop("optimizer_state_dict")
+
+        instance = cls(**cp)
+        instance.load_state_dict(msd)
+
+        if (optimizer is not None) and (osd is not None):
+            optimizer.load_state_dict(osd)
+
+        instance = instance.to(instance.device)
+
+        return instance
