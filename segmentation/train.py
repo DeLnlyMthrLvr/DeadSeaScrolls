@@ -29,7 +29,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 verbose: int = 2
 
 def load_batches(level: int):
-    level_path = Path(__file__).parent / "data" / "scrolls_seg" / f"level_{level}"
+    level_path = Path(__file__).parent.parent / "data" / "scrolls_seg" / f"level_{level}"
     chunks = sorted(
         level_path.glob("chunk_*.npz"),
         key=lambda p: int(p.stem.split("_")[1])
