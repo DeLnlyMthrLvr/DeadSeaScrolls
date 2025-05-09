@@ -278,9 +278,9 @@ class DataGenerator:
 
         return (
             batch_characters,
-            np.empty((N, 0)) if skip_char_seg else np.concat(batch_seg_masks, axis=0),
-            np.concat(batch_scrolls, axis=0),
-            np.concat(batch_lines, axis=0)
+            np.empty((N, 0)) if skip_char_seg else np.concatenate(batch_seg_masks, axis=0),
+            np.concatenate(batch_scrolls, axis=0),
+            np.concatenate(batch_lines, axis=0)
         )
 
 
@@ -308,9 +308,9 @@ class DataGenerator:
 
         return (
             batch_characters,
-            np.empty((N, 0)) if skip_char_seg else np.concat(batch_seg_masks, axis=0),
-            np.concat(batch_scrolls, axis=0),
-            np.concat(batch_lines, axis=0)
+            np.empty((N, 0)) if skip_char_seg else np.concatenate(batch_seg_masks, axis=0),
+            np.concatenate(batch_scrolls, axis=0),
+            np.concatenate(batch_lines, axis=0)
         )
 
 
