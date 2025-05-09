@@ -187,6 +187,8 @@ model_weights.pth
 data/test_images_ocr/*
 data/validation_images_ocr/*
 data/*
+ocr_ctc/*
+ocr_refactored/*
 #Seb
 /seb/SnakePract/*
 /seb/runs/*
