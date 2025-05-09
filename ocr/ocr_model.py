@@ -74,7 +74,6 @@ class TransformerDecoderBlock(nn.Module):
         residual = tgt
         tgt = self.norm3(tgt)
         tgt, _ = self.cross_attention(tgt, memory, memory, attn_mask=None)
-        tgt = tgt * self.cross_attention_scales
         tgt = tgt + residual
 
         return tgt   

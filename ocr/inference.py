@@ -29,25 +29,17 @@ def evaluate_accuracy(model, dataloader, tokenizer, device):
             target_sequences = target_sequences.to(device)
             predictions = []
             for batch_idx in range(images.size(0)):
-                # For each image in the batch, generate a sequence
-                image = images[batch_idx].unsqueeze(0)  # Add batch dimension
+                image = images[batch_idx].unsqueeze(0)
                 generated_tokens = model.module.generate(image, max_length, tokenizer.bos_token_id, tokenizer.eos_token_id)
                 predictions.append(generated_tokens)
             
-
-            worst_images = []
-
             for i in range(images.size(0)):
-                correct_per_image = 0 
                 target = target_sequences[i].cpu().numpy()
                 prediction = predictions[i]
 
-                correct_per_image += sum([1 if t == p else 0 for t, p in zip(target, prediction) if p != tokenizer.eos_token_id])
-                if correct_per_image <= 3:
-                    worst_images.append([index, target, prediction])
-                # Calculate how many tokens match (ignoring the eos_token)
-                correct += sum([1 if t == p else 0 for t, p in zip(target, prediction) if p != tokenizer.eos_token_id])
-                total += sum([1 for p in prediction if p != tokenizer.eos_token_id])
+                # Calculate how many tokens match (ignoring the bos and eos_token)
+                correct += sum([1 if t == p else 0 for t, p in zip(target, prediction) if p != tokenizer.eos_token_id and p!=tokenizer.bos_token_id])
+                total += sum([1 for t in target if t != tokenizer.eos_token_id and t!=tokenizer.bos_token_id and t!=tokenizer.pad_token_id])
                 index += 1
 
         accuracy = correct / total if total > 0 else 0
