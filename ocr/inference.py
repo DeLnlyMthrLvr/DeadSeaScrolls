@@ -15,7 +15,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import alphabet
 
-
 def evaluate_accuracy(model, dataloader, tokenizer, device):
     model.eval()
     correct = 0
@@ -32,7 +31,7 @@ def evaluate_accuracy(model, dataloader, tokenizer, device):
                 image = images[batch_idx].unsqueeze(0)
                 generated_tokens = model.module.generate(image, max_length, tokenizer.bos_token_id, tokenizer.eos_token_id)
                 predictions.append(generated_tokens)
-            
+
             for i in range(images.size(0)):
                 target = target_sequences[i].cpu().numpy()
                 prediction = predictions[i]
@@ -74,8 +73,8 @@ def token_accuracy(model, dataloader, tokenizer, device):
     accuracy = 100.0 * total_correct / total_tokens if total_tokens > 0 else 0.0
     print(f"Token-Level Accuracy (Teacher Forcing): {accuracy:.2f}%")
     return accuracy
-    
-    
+
+
 def inference():
     patch_size = 16
     embedding_dimension = 384 #768 base
@@ -85,10 +84,10 @@ def inference():
     mlp_ratio = 4
     dropout = 0.1
     batch_size = 32
-    
+
     image_size = (32, 416)
 
-    ViT = ocr_model.ViT(image_size[1], image_size[0], patch_size, 
+    ViT = ocr_model.ViT(image_size[1], image_size[0], patch_size,
                       embedding_dimension, num_heads, depth, vocab_size, mlp_ratio,
                       dropout)
 
@@ -101,7 +100,7 @@ def inference():
     weights_path = os.path.join(current_dir, '..', 'model_weights.pth')
     tokenizer = Tokenizer(alphabet.char_token)
 
-    model.load_state_dict(torch.load("/scratch/s3799042/weights/OCR/2025-05-05_18-23-54/model_weights.pth"))  
+    model.load_state_dict(torch.load("/scratch/s3799042/weights/OCR/2025-05-05_18-23-54/model_weights.pth"))
     dataset = data_loader.ScrollLineDataset(parquet_path, image_dir, tokenizer)
     dataloader = DataLoader(dataset, batch_size = 32, shuffle = False, collate_fn=lambda b: train.ocr_collate_fn(b, tokenizer.pad_token_id))
     evaluate_accuracy(model, dataloader, tokenizer, device)

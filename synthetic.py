@@ -5,11 +5,10 @@ import random
 
 import cv2
 import tqdm
-from alphabet import A, load_alphabet, char_token, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR, MEAN_CHAR_HEIGHT, MEAN_CHAR_WIDTH
+from alphabet import A, load_alphabet, enum_to_hebrew, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR, MEAN_CHAR_HEIGHT, MEAN_CHAR_WIDTH
 from noise import Noise, cutout_noise, warp_mask
 from bible import BibleTexts
 
-space_token = char_token[A.Space]
 
 @dataclass
 class SynthSettings:
@@ -34,10 +33,9 @@ class SynthSettings:
         self.downscale_size = (int(self.image_size[0] * self.downscale_factor), int(self.image_size[1] * self.downscale_factor))
 
 
-
 @dataclass
 class Sample:
-    tokens: list[list[int]]
+    characters: list[list[str]]
     image: np.ndarray
     segmentation: np.ndarray
     line: np.ndarray
@@ -47,7 +45,7 @@ def space_image():
 
 def _create_image(
         images: list[np.ndarray],
-        char_tokens: list[int],
+        enums: list[A],
         settings: SynthSettings
     ) -> Sample:
 
@@ -67,7 +65,7 @@ def _create_image(
 
     # Init images
     canvas = np.full((image_size[0], image_size[1]), 255, dtype=np.uint8)
-    segmentation = np.full((len(char_token) - 1, image_size[0], image_size[1]), 0, dtype=np.uint8)
+    segmentation = np.full((len(enum_to_hebrew), image_size[0], image_size[1]), 0, dtype=np.uint8)
     line = np.full((image_size[0], image_size[1]), 0, dtype=np.uint8)
 
 
@@ -81,16 +79,16 @@ def _create_image(
     if cnoise:
         cutout_mask = cutout_noise(*settings.image_size, radius=settings.cutout_noise_size)
 
-    iterator = list(zip(images, char_tokens))
-    used_tokens = []
-    line_tokens = []
+    iterator = list(zip(images, enums))
+    used_chars_split_to_lines: list[str] = []
+    line_chars: list[str] = []
 
     def line_end():
-        nonlocal line_tokens, used_tokens, line_max_x, line_min_x, line_max_y, line_min_y
+        nonlocal line_chars, used_chars_split_to_lines, line_max_x, line_min_x, line_max_y, line_min_y
 
-        if len(line_tokens) > 0:
-            used_tokens.append(line_tokens)
-            line_tokens = []
+        if len(line_chars) > 0:
+            used_chars_split_to_lines.append(''.join(line_chars))
+            line_chars = []
 
             if not (line_max_x == -float("inf") or line_min_x == float("inf") or line_max_y == -float("inf") or line_min_y == float("inf")):
                 line[
@@ -107,7 +105,7 @@ def _create_image(
     while i < len(iterator):
         i+= 1
 
-        letter_img, token = iterator[i]
+        letter_img, enum = iterator[i]
 
         h, w = letter_img.shape[:2]
 
@@ -134,7 +132,7 @@ def _create_image(
             break
 
         # Check if it collides with cutout mask
-        if cnoise and (token != space_token):
+        if cnoise and (enum != A.Space):
             cmask = cutout_mask[cur_y:bottom, new_x:cur_x]
             letter_mask = letter_img < 200
             letter_pixels = letter_mask.sum()
@@ -150,9 +148,11 @@ def _create_image(
                 continue
 
         # Letter can be applied
-        if token != space_token:
-            segmentation[token, cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
-            line_tokens.append(token)
+        if enum != A.Space:
+
+            # segmentation[enum, cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
+
+            line_chars.append(enum_to_hebrew[enum])
 
             line_min_y = min(cur_y, line_min_y)
             line_min_x = min(new_x, line_min_x)
@@ -179,7 +179,7 @@ def _create_image(
         line = cv2.resize(line, (sd_width, sd_height), interpolation=cv2.INTER_AREA)
 
     return Sample(
-        tokens=used_tokens,
+        characters=used_chars_split_to_lines,
         image=canvas,
         segmentation=segmentation,
         line=line
@@ -204,13 +204,12 @@ def create_alphabet_image(
         else:
             letter_img = random.choice(alphabet[key])
             images.append(letter_img)
-        char_tokens.append(char_token[letter])
+        char_tokens.append(letter)
 
     return _create_image(images, char_tokens, settings)
 
 
-
-TokensPerLine = list[list[list[int]]] # (n, max_sequence_length)
+TokensPerLine = list[list[str]] # (n, n_lines, sequence_length)
 SegmentationMasks = np.ndarray # (n, char_chanels, height, width)
 ScrollImages = np.ndarray # (n, height, width)
 LineMasks = np.ndarray # ()
@@ -242,7 +241,7 @@ class DataGenerator:
 
     def generate_ngram_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages, LineMasks]:
 
-        batch_char_tokens = []
+        batch_characters = []
         batch_seg_masks = []
         batch_scrolls = []
         batch_lines = []
@@ -273,12 +272,12 @@ class DataGenerator:
             if not skip_char_seg:
                 batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
 
-            batch_char_tokens.append(sample.tokens)
+            batch_characters.append(sample.characters)
             batch_scrolls.append(sample.image[np.newaxis, ...])
             batch_lines.append(sample.line[np.newaxis, ...])
 
         return (
-            batch_char_tokens,
+            batch_characters,
             np.empty((N, 0)) if skip_char_seg else np.concat(batch_seg_masks, axis=0),
             np.concat(batch_scrolls, axis=0),
             np.concat(batch_lines, axis=0)
@@ -287,7 +286,7 @@ class DataGenerator:
 
     def generate_passages_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages, LineMasks]:
 
-        batch_char_tokens = []
+        batch_characters = []
         batch_seg_masks = []
         batch_scrolls = []
         batch_lines = []
@@ -303,12 +302,12 @@ class DataGenerator:
             if not skip_char_seg:
                 batch_seg_masks.append(sample.segmentation[np.newaxis, ...])
 
-            batch_char_tokens.append(sample.tokens)
+            batch_characters.append(sample.characters)
             batch_scrolls.append(sample.image[np.newaxis, ...])
             batch_lines.append(sample.line[np.newaxis, ...])
 
         return (
-            batch_char_tokens,
+            batch_characters,
             np.empty((N, 0)) if skip_char_seg else np.concat(batch_seg_masks, axis=0),
             np.concat(batch_scrolls, axis=0),
             np.concat(batch_lines, axis=0)
@@ -353,6 +352,9 @@ if __name__ == "__main__":
 
     tokens, seg, scrolls, lines = generator.generate_passages_scrolls(10, skip_char_seg=True)
 
+    print(len(tokens), len(tokens[0]))
+    print(tokens)
+
     # noise.create_masks(2)
     # dmgd = noise.damage(scrolls, strength=0.3)
 
@@ -361,13 +363,13 @@ if __name__ == "__main__":
     # print("Chars", len(tokens[0][0]), len(tokens[1][1]))
 
 
-    for i in range(scrolls.shape[0]):
-        fig, ax = plt.subplots(1, 2)
+    # for i in range(scrolls.shape[0]):
+    #     fig, ax = plt.subplots(1, 2)
 
-        ax[0].imshow(scrolls[i], cmap="binary")
-        ax[1].imshow(lines[i], cmap="binary_r")
+    #     ax[0].imshow(scrolls[i], cmap="binary")
+    #     ax[1].imshow(lines[i], cmap="binary_r")
 
-        fig.tight_layout()
+    #     fig.tight_layout()
 
         # img_lines = extract_lines_cc(scrolls[i], lines[i])
 
@@ -397,6 +399,6 @@ if __name__ == "__main__":
     #     axs_all.append(axs)
 
 
-    plt.show()
+    # plt.show()
 
 
