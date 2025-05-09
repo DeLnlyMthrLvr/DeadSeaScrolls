@@ -5,7 +5,7 @@ import random
 
 import cv2
 import tqdm
-from alphabet import A, load_alphabet, enum_to_hebrew, sample_ngrams, load_n_grams, MEAN_NGRAM_CHAR, MEAN_CHAR_HEIGHT, MEAN_CHAR_WIDTH
+from alphabet import A, load_alphabet, enum_to_hebrew, sample_ngrams, load_n_grams, char_token, MEAN_NGRAM_CHAR, MEAN_CHAR_HEIGHT, MEAN_CHAR_WIDTH
 from noise import Noise, cutout_noise, warp_mask
 from bible import BibleTexts
 
@@ -67,7 +67,6 @@ def _create_image(
     canvas = np.full((image_size[0], image_size[1]), 255, dtype=np.uint8)
     segmentation = np.full((len(enum_to_hebrew), image_size[0], image_size[1]), 0, dtype=np.uint8)
     line = np.full((image_size[0], image_size[1]), 0, dtype=np.uint8)
-
 
     # Line data
     line_max_x: float = -float("inf")
@@ -150,7 +149,7 @@ def _create_image(
         # Letter can be applied
         if enum != A.Space:
 
-            # segmentation[enum, cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
+            segmentation[char_token[enum], cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
 
             line_chars.append(enum_to_hebrew[enum])
 
