@@ -9,7 +9,6 @@ class Box:
     maxx:int
     miny:int
     maxy:int
-
 class LetterCentresExtractor:
 
     def __init__(self, min_size: int = 10, pad: int = 5):
@@ -18,41 +17,22 @@ class LetterCentresExtractor:
 
    
     def __call__(self,
-                 line_img: np.ndarray,
-                 masks: np.ndarray) -> list[tuple[int, int]]:
+                 masks: list[np.ndarray]) -> list[tuple[int, int]]:
        
         if masks.shape[0] != 27:
             raise ValueError("masks must have shape (27, H, W)")
 
         centres_all: list[tuple[int, int]] = []
-        H, W = masks.shape[1:]
 
-        for k in range(27):
-            mask_k = masks[k].astype(bool)
-            # remove tiny speckles
-            mask_k = morphology.remove_small_objects(mask_k, self.min_size)
-
-            lbl = measure.label(mask_k)
-            props = measure.regionprops(lbl)
-
-            centres_k: list[tuple[int, int]] = []
-            for r in props:
-                minr, minc, maxr, maxc = r.bbox
-                # optional padding
-                minr = max(minr - self.pad, 0)
-                minc = max(minc - self.pad, 0)
-                maxr = min(maxr + self.pad, H)
-                maxc = min(maxc + self.pad, W)
-
-                cx = (minc + maxc) // 2   # column  (x)
-                cy = (minr + maxr) // 2   # row     (y)
-                centres_k.append((cx, cy))
-
-            centres_all.append(centres_k)
+        for index, channel in enumerate(masks):
+            boxes = self._get_bounding_boxes(channel)
+            for box in boxes:
+                center = self._get_center(box)
+                centres_all.append((center[0], index))
 
         return centres_all
 
-    def _get_bounding_boxes(img: np.ndarray, self):
+    def _get_bounding_boxes(img: np.ndarray, self) -> Box:
             
             gray = img.astype(float)
             blur = filters.gaussian(gray, sigma=1)
@@ -77,6 +57,7 @@ class LetterCentresExtractor:
 
             return  boxes
     
-    def _get_center(box:Box):
-
-        cx = 
+    def _get_center(box:Box) ->tuple[int,int]:
+        cx = (box.minx + box.maxx) // 2
+        cy = (box.miny + box.maxy) // 2
+        return (cx, cy)
