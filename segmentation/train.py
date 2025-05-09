@@ -127,7 +127,7 @@ def train_epoch(
     validation_data: SegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 35,
+    batch_size: int = 400,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -165,7 +165,7 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "unetseg",
+        experiment_name: str | None = "unetseg_fixed",
         best_loss: float = float("inf")
     ):
 

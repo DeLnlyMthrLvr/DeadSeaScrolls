@@ -12,6 +12,7 @@ sea/
 /seb/line_segmentation/runs/*
 /seb/line_segmentation/checkpoints/*
 /seb/line_segmentation/final_models/*
+/segmentation/runs/*
 # C extensions
 *.so
 
