@@ -132,7 +132,7 @@ def train_epoch(
     validation_data: SegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 70,
+    batch_size: int = 250,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
