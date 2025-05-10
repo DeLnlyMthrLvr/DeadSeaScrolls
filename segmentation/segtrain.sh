@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --mem=16GB
+#SBATCH --mem=32GB
 #SBATCH --time=4:00:00
 #SBATCH --job-name=lstrain
 #SBATCH --partition=gpu
