@@ -1,0 +1,61 @@
+noise_1
+Epoch 1 | Training Loss: 3.0880
+Epoch 1 | Validation Loss: 3.0138
+Epoch 1 | Training Loss: 3.0203
+Epoch 1 | Validation Loss: 2.9968
+Epoch 1 | Training Loss: 2.9816
+Epoch 1 | Validation Loss: 3.0966
+Epoch 1 | Training Loss: 2.9478
+Epoch 1 | Validation Loss: 3.1189
+Epoch 1 | Training Loss: 2.9237
+Epoch 1 | Validation Loss: 3.1491
+noise_0
+Epoch 2 | Training Loss: 2.8881
+Epoch 2 | Validation Loss: 3.1113
+Epoch 2 | Training Loss: 2.8587
+Epoch 2 | Validation Loss: 3.1184
+Epoch 2 | Training Loss: 2.7471
+Epoch 2 | Validation Loss: 6.0100
+Epoch 2 | Training Loss: 2.4598
+Epoch 2 | Validation Loss: 6.2951
+
+###############################################################################
+Hábrók Cluster
+Job 17166839 for user s3799042
+Finished at: Sat May 10 13:32:31 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17166839
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : a100gpu6
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : TIMEOUT  
+Submit                         : 2025-05-10T11:30:38
+Start                          : 2025-05-10T11:32:19
+End                            : 2025-05-10T13:32:26
+Reserved walltime              : 02:00:00
+Used walltime                  : 02:00:07
+Used CPU time                  : 02:12:37 (Efficiency: 13.80%)
+% User (Computation)           : 85.77%
+% System (I/O)                 : 14.23%
+Total memory reserved          : 32G
+Maximum memory used            : 3.90G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 99%
+Max GPU memory used            : 17.78G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

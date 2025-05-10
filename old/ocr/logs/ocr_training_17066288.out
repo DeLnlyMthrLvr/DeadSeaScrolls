@@ -1,0 +1,194 @@
+average loss train: 0.019732270827516912
+average loss train: 0.010378546197898686
+average loss train: 0.009949214467778801
+average loss train: 0.007545807496644557
+average loss train: 0.0082658662321046
+average loss train: 0.0077840313222259285
+average loss train: 0.006498189687263221
+average loss train: 0.007655046305153519
+average loss train: 0.006267808428965509
+Token-Level Accuracy (Teacher Forcing): 97.53%
+Accuracy: 71.19%
+average loss val: 0.0010390306041309877
+average loss train: 0.006105715276207775
+average loss train: 0.007298589369747787
+average loss train: 0.0051995174726471305
+average loss train: 0.005965537498705089
+average loss train: 0.0065340627543628215
+average loss train: 0.004715845910832286
+average loss train: 0.005931311917956919
+average loss train: 0.005643573433626443
+average loss train: 0.004642346389591694
+average loss train: 0.005744845976587385
+Token-Level Accuracy (Teacher Forcing): 94.90%
+Accuracy: 56.84%
+average loss val: 0.00274669224329825
+average loss train: 0.004780502594076097
+average loss train: 0.004630364247132093
+average loss train: 0.005606779544614256
+average loss train: 0.0041176071600057184
+average loss train: 0.00467826928710565
+average loss train: 0.005391731250565499
+average loss train: 0.003705271305516362
+average loss train: 0.004729227279312909
+average loss train: 0.004755234767217189
+average loss train: 0.003732147184200585
+Token-Level Accuracy (Teacher Forcing): 93.21%
+Accuracy: 55.26%
+average loss val: 0.003779618382742185
+average loss train: 0.004735920072998851
+average loss train: 0.004113247031345964
+average loss train: 0.0038904288201592864
+average loss train: 0.004761611989233643
+average loss train: 0.0036055666930042206
+average loss train: 0.003935884144157171
+average loss train: 0.004769937114324421
+average loss train: 0.0031382789043709635
+average loss train: 0.0040269659366458654
+average loss train: 0.004268670957535505
+Token-Level Accuracy (Teacher Forcing): 94.48%
+Accuracy: 56.02%
+average loss val: 0.0032920584503916047
+average loss train: 0.003141896357992664
+average loss train: 0.004107307153753936
+average loss train: 0.003802731977775693
+average loss train: 0.0033158696920145302
+average loss train: 0.00413198082242161
+average loss train: 0.003273273203521967
+average loss train: 0.0034096750034950675
+average loss train: 0.004225754506187514
+average loss train: 0.002883618243504316
+average loss train: 0.003545510198455304
+Token-Level Accuracy (Teacher Forcing): 94.01%
+Accuracy: 52.59%
+average loss val: 0.0033270447207282166
+average loss train: 0.003945012404583395
+average loss train: 0.0026914114761166274
+average loss train: 0.003679371876642108
+average loss train: 0.003512833344284445
+average loss train: 0.0028702691476792095
+average loss train: 0.003679053472587839
+average loss train: 0.003062119451351464
+average loss train: 0.0030458152922801674
+average loss train: 0.003753817806718871
+average loss train: 0.00266769602894783
+Token-Level Accuracy (Teacher Forcing): 96.25%
+Accuracy: 58.21%
+average loss val: 0.001965947858046829
+average loss train: 0.0031085662159603088
+average loss train: 0.003738212214084342
+average loss train: 0.0023810098925605414
+average loss train: 0.0032582275848835707
+average loss train: 0.0033197400311473758
+average loss train: 0.002516162693500519
+average loss train: 0.0033287903189193457
+average loss train: 0.002902634273050353
+average loss train: 0.002698407865827903
+average loss train: 0.0034342675609514116
+Token-Level Accuracy (Teacher Forcing): 95.44%
+Accuracy: 48.84%
+average loss val: 0.0025310455405685517
+average loss train: 0.002521760262316093
+average loss train: 0.0028152541629970075
+average loss train: 0.0034555168729275467
+average loss train: 0.002238412951119244
+average loss train: 0.002947618569014594
+average loss train: 0.0031789578578900546
+average loss train: 0.002217296619201079
+average loss train: 0.0030456190975382924
+average loss train: 0.0028085161023773254
+average loss train: 0.0023824803659226747
+Token-Level Accuracy (Teacher Forcing): 96.49%
+Accuracy: 57.22%
+average loss val: 0.0020192330412101
+average loss train: 0.003141685603186488
+average loss train: 0.0024500241165515036
+average loss train: 0.002578123032581061
+average loss train: 0.0032396730012260377
+average loss train: 0.0021387337648775427
+average loss train: 0.002682931147282943
+average loss train: 0.003116320805856958
+average loss train: 0.0020114246744196863
+average loss train: 0.0027949749457184224
+average loss train: 0.0027322464575991034
+Token-Level Accuracy (Teacher Forcing): 96.65%
+Accuracy: 50.16%
+average loss val: 0.001707423119417702
+average loss train: 0.002149639172712341
+average loss train: 0.0028698925487697126
+average loss train: 0.0023847543611191214
+average loss train: 0.00234953070175834
+average loss train: 0.0029872530605643986
+average loss train: 0.002128813765011728
+average loss train: 0.002464824712369591
+average loss train: 0.003022672792430967
+average loss train: 0.0018278681754600257
+average loss train: 0.002609301934717223
+Token-Level Accuracy (Teacher Forcing): 96.66%
+Accuracy: 53.75%
+average loss val: 0.0019356773652058716
+average loss train: 0.0027286148676648734
+average loss train: 0.0019476439990103245
+average loss train: 0.0026938451919704676
+average loss train: 0.0023725759924855083
+average loss train: 0.0021538232336752116
+average loss train: 0.0027892722701653837
+average loss train: 0.002080641486099921
+average loss train: 0.0022647628106642515
+average loss train: 0.002832905569812283
+average loss train: 0.0018183217965997756
+Token-Level Accuracy (Teacher Forcing): 97.32%
+Accuracy: 55.20%
+average loss val: 0.0013980716023416747
+average loss train: 0.0024143564671976494
+average loss train: 0.002666294932132587
+average loss train: 0.001794877287466079
+average loss train: 0.00252101011457853
+average loss train: 0.0023405971156898885
+average loss train: 0.0019686933385673912
+average loss train: 0.002618129935581237
+average loss train: 0.002066100320080295
+average loss train: 0.002143057442153804
+average loss train: 0.0027121414768043906
+Token-Level Accuracy (Teacher Forcing): 97.19%
+
+###############################################################################
+Hábrók Cluster
+Job 17066288 for user s3799042
+Finished at: Wed May  7 14:17:10 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17066288
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : a100gpu6
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : TIMEOUT  
+Submit                         : 2025-05-07T12:46:18
+Start                          : 2025-05-07T12:46:42
+End                            : 2025-05-07T14:17:05
+Reserved walltime              : 01:30:00
+Used walltime                  : 01:30:23
+Used CPU time                  : 03:40:38 (Efficiency: 30.51%)
+% User (Computation)           : 65.24%
+% System (I/O)                 : 34.76%
+Total memory reserved          : 32G
+Maximum memory used            : 7.67G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 43%
+Max GPU memory used            : 4.38G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

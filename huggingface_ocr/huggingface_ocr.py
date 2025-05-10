@@ -13,6 +13,9 @@ from datetime import datetime
 import numpy as np
 from torch.nn.utils.rnn import pad_sequence
 from torch.nn import DataParallel
+from torchvision.transforms.functional import to_pil_image
+import matplotlib.pyplot as plt
+import torchvision.transforms.functional as F
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import alphabet
@@ -36,8 +39,22 @@ def collate_fn(batch, tokenizer):
         'labels': labels_padded
     }
 
+def visualize(pixel_values, labels, tokenizer: Tokenizer):
+    for idx in range(pixel_values.shape[0]):
+        img = to_pil_image(pixel_values[idx])
+        label_ids = labels[idx]
+        label_ids = label_ids[label_ids != -100]  # remove padding/ignore tokens
+        label_text = tokenizer.decode(label_ids)
+        plt.imshow(img)
+        plt.title(f"Label: {label_text}, label_ids: {label_ids}")
+        plt.axis("off")
+
+        # Save the figure
+        plt.savefig("output_example.png", bbox_inches="tight", dpi=300)
+        print("created_image")
+
 def train_epoch(model, train_data, val_data, 
-                optimizer, batch_size):
+                optimizer, batch_size, epoch):
     val_loader = DataLoader(dataset=val_data, batch_size=batch_size, collate_fn=lambda b: collate_fn(b, tokenizer))
     #eval_model(model, val_loader)
     model.train()
@@ -46,11 +63,12 @@ def train_epoch(model, train_data, val_data,
     total_train_loss = 0
     count = 1
     for batch in tqdm.tqdm(train_loader, total=len(train_loader)):
+        #visualize(batch['pixel_values'], batch['labels'], tokenizer)
         pixel_values = batch['pixel_values'].to(device)
         labels = batch['labels'].to(device)
 
         outputs = model(pixel_values=pixel_values, labels=labels)
-        loss = outputs.loss.mean()# list of scalar tensors
+        loss = outputs.loss #list of scalar tensors
         loss.backward()
 
         optimizer.step()
@@ -74,7 +92,7 @@ def eval_model(model, val_loader):
             pixel_values = batch['pixel_values'].to(device)
             labels = batch['labels'].to(device)
             outputs = model(pixel_values=pixel_values, labels=labels)
-            total_val_loss += outputs.loss.mean()
+            total_val_loss += outputs.loss
 
     avg_val_loss = total_val_loss / len(val_loader)
     print(f"Epoch {epoch} | Validation Loss: {avg_val_loss:.4f}")
@@ -93,13 +111,13 @@ def log_metrics(save_dir, train_loss, validation_loss):
 tokenizer = Tokenizer(alphabet.char_token)
 
 
-UsePretrained = False
+UsePretrained = True
 # 2. Load pretrained TrOCR model & feature extractor
 model = None
 if UsePretrained:
     model = VisionEncoderDecoderModel.from_pretrained('microsoft/trocr-base-stage1')
 else:
-    model = VisionEncoderDecoderModel.from_pretrained('/home3/s3799042/DeadSeaScrolls/trocr-hebrew-finetuned')
+    model = VisionEncoderDecoderModel.from_pretrained("/scratch/s3799042/weights/huggingface_ocr/Checkpoint/trocr-hebrew-finetuned/")
 
 feature_extractor = ViTFeatureExtractor.from_pretrained('microsoft/trocr-base-stage1')
 # Resize token embeddings to new vocab size
@@ -132,18 +150,42 @@ class OCRDataset(Dataset):
     def __len__(self):
         return len(self.all_lines)
 
+    def _pad_resize_images(self, image: np.array):
+        image_resized = (384, 384)
+        max_width = 3000
+        width = image.shape[1]
+        height = image.shape[0]
+        ratio_width = width / max_width
+        pad_width = (1-ratio_width) * image_resized[1]
+        pad_height = pad_width + width - height
+        padding = (int(pad_width), 0, 0, int(pad_height))  # left, top, right, bottom
+        
+        image = Image.fromarray(image)
+        image = F.pad(image, padding, fill=255)
+
+        #plt.imshow(image)
+        #plt.title(f"height: {image.height}, width: {image.width}")
+        #plt.axis("off")
+
+        # Save the figure
+        #plt.savefig("output_example.png", bbox_inches="tight", dpi=300)
+        #print("created_image")
+        return image
+
     def __getitem__(self, idx):
         tokens = self.all_tokens[idx]
         image = self.all_lines[idx]
+        image = self._pad_resize_images(image)
         # If float image (0.0–1.0), scale to 0–255
-        if image.dtype in [np.float32, np.float64]:
-            image = (image * 255).astype(np.uint8)
-        elif image.dtype != np.uint8:
-            image = image.astype(np.uint8)
+        #if image.dtype in [np.float32, np.float64]:
+        #    image = (image * 255).astype(np.uint8)
+        #elif image.dtype != np.uint8:
+        #    image = image.astype(np.uint8)
 
         # Create and save the image
-        img = Image.fromarray(image)
-        img.save("output.png")
+        #img = Image.fromarray(image)
+        #img.save("output.png")
+
         rgb = np.stack([image] * 3, axis=-1)  # Grayscale
         pixel_values = self.feature_extractor(images=rgb, return_tensors='pt').pixel_values[0]
 
@@ -165,7 +207,7 @@ scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_t
 
 # 6. Training & validation loops
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = DataParallel(model, device_ids=[0, 1])
+#model = DataParallel(model, device_ids=[0, 1])
 model.to(device)
 
 for epoch in range(1, num_epochs+1):
@@ -173,15 +215,23 @@ for epoch in range(1, num_epochs+1):
     total_train_loss = 0
     pool = {i for i in range(5)}
     level = random.choice(list(pool))
-    level = 0
     print(f"noise_{level}")
     iterator = noise_designer.load_batches(level=level)
     val_tokens, val_scrolls, val_lines = next(iterator)
+    val_scrolls = val_scrolls[:1000]
+    val_lines = val_lines[:1000]
+
     val_data = OCRDataset(val_scrolls, val_lines, val_tokens, feature_extractor)
 
     for train_tokens, train_scrolls, train_lines in iterator:
         train_data = OCRDataset(train_scrolls, train_lines, train_tokens, feature_extractor)
-        avg_train_loss, avg_val_loss = train_epoch(model, train_data, val_data, optimizer, batch_size)
-        model.module.save_pretrained(os.path.join(save_dir, 'trocr-hebrew-finetuned'))
+        avg_train_loss, avg_val_loss = train_epoch(model, train_data, val_data, optimizer, batch_size, epoch)
+        model.cpu()
+        model.save_pretrained(
+            os.path.join(save_dir, f"trocr-hebrew-finetuned_{str(epoch)}"),
+            safe_serialization=False,  # or True with sharding
+            max_shard_size="1GB"
+        )
+        model.to(device)
         log_metrics(save_dir, avg_train_loss, avg_val_loss)
 

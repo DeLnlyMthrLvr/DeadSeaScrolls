@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train_refactored.py", line 193, in <module>
+    trainer = OCRTrainer()
+              ^^^^^^^^^^^^
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train_refactored.py", line 92, in __init__
+    self._load_datasets()
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train_refactored.py", line 124, in _load_datasets
+    data_loader_refactored.NGramsDatasetIterable(self.tokenizer, self.image_size),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home3/s3799042/DeadSeaScrolls/ocr/data_loader_refactored.py", line 119, in __init__
+    self.generator = synthetic.DataGenerator(settings=synthetic.SynthSettings(downscale_factor=1))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home3/s3799042/DeadSeaScrolls/synthetic.py", line 237, in __init__
+    self.ngrams, self.ngram_frequencies, self.ngram_tokens = load_n_grams()
+                                                             ^^^^^^^^^^^^^^
+  File "/home3/s3799042/DeadSeaScrolls/alphabet.py", line 122, in load_n_grams
+    ngrams.append(tuple(reversed(str_to_enum[name] for name in list_names)))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'generator' object is not reversible

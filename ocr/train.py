@@ -1,211 +1,198 @@
 import os
+import sys
+import shutil
+from datetime import datetime
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import ocr_model
-from tokenizer import Tokenizer
-import data_loader
-import sys
-import inference
-from datetime import datetime
-import shutil
+from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import LambdaLR
 
-from torch.utils.data import DataLoader
-# Add parent directory to the path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+import ocr_model
+import data_loader
+import inference
+from tokenizer import Tokenizer
 import alphabet
 
-# batching variable-length sequences
+
 def ocr_collate_fn(batch, pad_token_id):
     images, targets = zip(*batch)
-
     images = torch.stack(images)
-
     lengths = [len(t) for t in targets]
     max_len = max(lengths)
     padded_targets = torch.full((len(targets), max_len), pad_token_id, dtype=torch.long)
-
     for i, t in enumerate(targets):
         padded_targets[i, :len(t)] = t
-
     return images, padded_targets
 
+
 def evaluate_loss(model, criterion, dataloader, device):
-    average_loss = 0
+    model.eval()
+    total_loss = 0
     n_batches = 0
     with torch.no_grad():
-        for images, target_sequences in dataloader:
-            n_batches +=1
-            images = images.to(device)
-            target_sequences = target_sequences.to(device)
-
-            # Shift inputs for teacher forcing
-            tgt_input = target_sequences[:, :-1]
-            tgt_output = target_sequences[:, 1:]
-
-            logits = model(images, tgt_input)  # (batch_size, seq_len, vocab_size)
+        for images, targets in dataloader:
+            images, targets = images.to(device), targets.to(device)
+            tgt_input = targets[:, :-1]
+            tgt_output = targets[:, 1:]
+            logits = model(images, tgt_input)
             loss = criterion(logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1))
-            average_loss += loss.item()/len(images)
+            total_loss += loss.item() / len(images)
+            n_batches += 1
+    return total_loss / n_batches
 
-    print(f"average loss val: {average_loss/n_batches}")
-    return average_loss/n_batches
 
-def save_scripts(save_dir):
-    train_script = os.path.abspath(__file__)
-    shutil.copy(train_script, os.path.join(save_dir, "train.py"))
+def save_scripts(destination):
+    current_dir = os.path.dirname(__file__)
+    for script in ["train.py", "ocr_model.py", "data_loader.py"]:
+        src = os.path.join(current_dir, script)
+        shutil.copy(src, os.path.join(destination, script))
 
-    model_script = os.path.join(os.path.dirname(__file__), "ocr_model.py")
-    shutil.copy(model_script, os.path.join(save_dir, "ocr_model.py"))
 
-    dataloader_script = os.path.join(os.path.dirname(__file__), "data_loader.py")
-    shutil.copy(dataloader_script, os.path.join(save_dir, "data_loader.py"))
-
-def log_metrics(save_dir, train_loss, validation_loss, validation_accuracy,
-                 accuracy_teacher_forced, test_accuracy, test_accuracy_teacher_forced,
-                  ngram_accuracy, ngram_token_accuracy, lr):
+def log_metrics(save_dir, train_loss, val_loss, val_acc, acc_tf, test_acc, test_acc_tf, ngram_acc, ngram_tf_acc, lr):
     log_file = os.path.join(save_dir, "metrics_log.txt")
-
-    line = (
-    f"Train Loss: {train_loss:.4f}, Validation Loss: {validation_loss:.4f}, "
-    f"Validation Accuracy: {validation_accuracy * 100:.2f}%, "
-    f"Accuracy (Teacher Forced): {accuracy_teacher_forced:.2f}%, "
-    f"Learning Rate: {lr:.8f}\n"
-    f"Test Accuracy: {test_accuracy * 100:.2f}%, "
-    f"Test Accuracy (Teacher Forced): {test_accuracy_teacher_forced:.2f}\n"
-    f"N-Gram Accuracy: {ngram_accuracy * 100:.2f}%, "
-    f"N-Gram Accuracy (Teacher Forced): {ngram_token_accuracy:.2f}\n\n"
-    )
-
     with open(log_file, "a") as f:
-        f.write(line)
+        f.write(
+            f"Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}, "
+            f"Validation Accuracy: {val_acc * 100:.2f}%, Accuracy (Teacher Forced): {acc_tf:.2f}%, "
+            f"Learning Rate: {lr:.8f}\n"
+            f"Test Accuracy: {test_acc * 100:.2f}%, Test Accuracy (Teacher Forced): {test_acc_tf:.2f}\n"
+            f"N-Gram Accuracy: {ngram_acc * 100:.2f}%, N-Gram Accuracy (Teacher Forced): {ngram_tf_acc:.2f}\n\n"
+        )
 
 
-def train():
-  patch_size = 16 
-  embedding_dimension = 384 #768 base
-  encoder_layers = 12 #12 base
-  decoder_layers = 6
-  num_heads = 6 #12 base
-  vocab_size = 30
-  mlp_ratio = 4
-  dropout = 0.1
-  batch_size = 128
-  cross_attention_scale = 1.5
-  
-  image_size = (32, 416)
-  
-  ViT = ocr_model.ViT(image_size[1], image_size[0], patch_size, 
-                      embedding_dimension, num_heads, encoder_layers, vocab_size, mlp_ratio,
-                      dropout)
+class OCRTrainer:
+    def __init__(self):
+        self.patch_size = 16
+        self.embedding_dim = 192
+        self.encoder_layers = 12
+        self.decoder_layers = 6
+        self.num_heads = 3
+        self.vocab_size = 30
+        self.mlp_ratio = 4
+        self.dropout = 0.1
+        self.batch_size = 128
+        self.cross_attention_scale = 1.5
+        self.image_size = (32, 416)
+        self.device = torch.device("cuda")
+        self.tokenizer = Tokenizer(alphabet.char_token)
 
-  model = ocr_model.OCR(ViT, embedding_dimension, num_heads, decoder_layers, vocab_size, cross_attention_scale=cross_attention_scale)
-  model = nn.DataParallel(model)
-  criterion = nn.CrossEntropyLoss()
-  optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
-  device = torch.device('cuda')
-  model.to(device)
-  tokenizer = Tokenizer(alphabet.char_token)
-  current_dir = os.path.dirname(__file__)
-  image_dir_normal = os.path.join(current_dir, '..', 'data', 'test_images_ocr')
-  image_dir_ngrams = os.path.join(current_dir, '..', 'data', 'n_gram_images')
-  image_dir_noise = os.path.join(current_dir, '..', 'data', 'test_images_ocr')
-  image_dir_test = os.path.join(current_dir, '..', 'data', 'sample-test-2025', 'Lines')
-  parquet_normal_path = os.path.join(image_dir_normal, "tokens.parquet")
-  parquet_ngrams_path = os.path.join(image_dir_ngrams, "tokens.parquet")
-  parquet_noise_path = os.path.join(image_dir_normal, "tokens.parquet")
-  parquet_test_path = os.path.join(image_dir_test, "tokens.parquet")
+        self.model = self._build_model()
+        self.criterion = nn.CrossEntropyLoss()
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=0.0001, weight_decay=0.01)
+        self.scheduler = self._get_scheduler()
 
-  weights_path = os.path.join(current_dir, '..', 'model_weights.pth')
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        self.save_dir = os.path.join("/scratch/s3799042/weights/OCR/", timestamp)
+        os.makedirs(self.save_dir, exist_ok=True)
+        save_scripts(self.save_dir)
 
-  timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-  save_dir = os.path.join("/scratch/s3799042/weights/OCR/", timestamp)
-  os.makedirs(save_dir, exist_ok=True)
-  save_scripts(save_dir)
+        self._load_datasets()
 
-  num_training_steps = 15_000_000
-  num_warmup_steps = int(0.02 * num_training_steps)
+    def _build_model(self):
+        vit = ocr_model.ViT(
+            self.image_size[1], self.image_size[0], self.patch_size,
+            self.embedding_dim, self.num_heads, self.encoder_layers,
+            self.vocab_size, self.mlp_ratio, self.dropout
+        )
+        model = ocr_model.OCR(
+            vit, self.embedding_dim, self.num_heads, self.decoder_layers,
+            self.vocab_size, cross_attention_scale=self.cross_attention_scale
+        )
+        model = nn.DataParallel(model).to(self.device)
+        #model.load_state_dict(torch.load("/scratch/s3799042/weights/OCR/2025-05-08_16-03-01/model_weights_70_accuracy.pth"))
+        return model
 
-  def lr_lambda(current_step):
-    if current_step < num_warmup_steps:
-        return float(current_step) / float(max(1, num_warmup_steps))
-    return max(
-        0.0, float(num_training_steps - current_step) / float(max(1, num_training_steps - num_warmup_steps))
-    )
+    def _get_scheduler(self):
+        num_steps = 15000
+        warmup_steps = int(0.1 * num_steps)
 
-  scheduler = LambdaLR(optimizer, lr_lambda)
-  #model.load_state_dict(torch.load("/scratch/s3799042/weights/OCR/2025-05-07_12-46-57/model_weights.pth"))  
-  dataset_train = data_loader.ScrollLineDatasetIterable(tokenizer, image_size)
-  dataloader_train = DataLoader(dataset_train, batch_size = batch_size, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
-  
-  dataset_val = data_loader.ScrollLineDataset(parquet_normal_path, image_dir_normal, tokenizer)
-  dataloader_val = DataLoader(dataset_val, batch_size = batch_size, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
-  
-  dataset_ngrams = data_loader.ScrollLineDataset(parquet_ngrams_path, image_dir_ngrams, tokenizer)
-  dataloader_ngrams = DataLoader(dataset_ngrams, batch_size = batch_size, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
+        def lr_lambda(step):
+            if step < warmup_steps:
+                return float(step) / float(max(1, warmup_steps))
+            return max(0.0, float(num_steps - step) / float(max(1, num_steps - warmup_steps)))
 
-  dataset_test = data_loader.ScrollLineDatasetWithPadding(parquet_test_path, image_dir_test, tokenizer, image_size)
-  dataloader_test = DataLoader(dataset_test, batch_size = batch_size, shuffle = False, collate_fn=lambda b: ocr_collate_fn(b, tokenizer.pad_token_id))
-  train_ocr(model, dataloader_train, dataloader_val, dataloader_test, dataloader_ngrams, optimizer, criterion, device, 
-            tokenizer, save_dir, scheduler)
-  
-def train_ocr(model, dataloader_train, dataloader_val, dataloader_test, dataloader_ngrams,
-              optimizer, criterion, device, tokenizer, save_dir, scheduler):
-    model.train()
-    average_loss = 0
-    count = 0
-    print_after_n_batches = 100
-    save_after_n_batches = 500
-    for images, target_sequences in dataloader_train:
-        if count > 0 and count % save_after_n_batches == 0:
-            current_lr = optimizer.param_groups[0]['lr']
-            test_token_accuracy = inference.token_accuracy(model, dataloader_test, tokenizer, device)
-            test_accuracy = inference.evaluate_accuracy(model, dataloader_test, tokenizer, device)
-            
-            ngram_token_accuracy = inference.token_accuracy(model, dataloader_ngrams, tokenizer, device)
-            ngram_accuracy = inference.evaluate_accuracy(model, dataloader_ngrams, tokenizer, device)
+        return LambdaLR(self.optimizer, lr_lambda)
 
-            token_accuracy = inference.token_accuracy(model, dataloader_val, tokenizer, device)
-            val_accuracy = inference.evaluate_accuracy(model, dataloader_val, tokenizer, device)
+    def _load_datasets(self):
+        current_dir = os.path.dirname(__file__)
+        data_base = os.path.join(current_dir, '..', 'data')
+        test_base = os.path.join(data_base, 'sample-test-2025', 'Lines')
 
-            
-            
-            
-            val_loss = evaluate_loss(model, criterion, dataloader_val, device)
-            log_metrics(save_dir, average_loss/print_after_n_batches, val_loss, val_accuracy, 
-                        token_accuracy, test_accuracy, test_token_accuracy, ngram_accuracy, ngram_token_accuracy,
-                         current_lr)
-            torch.save(model.state_dict(), os.path.join(save_dir,"model_weights.pth"))
-            model.train()
-        if count > 0 and count % print_after_n_batches == 0:
-            print(f"average loss train: {average_loss/print_after_n_batches}")
-            average_loss = 0
+        self.train_loader = DataLoader(
+            data_loader.BibleDatasetIterable(self.tokenizer, self.image_size),
+            batch_size=self.batch_size, shuffle=False,
+            collate_fn=lambda b: ocr_collate_fn(b, self.tokenizer.pad_token_id)
+        )
+        self.val_loader = DataLoader(
+            data_loader.ScrollLineDataset(os.path.join(data_base, 'test_images_ocr', 'tokens.parquet'),
+                                                     os.path.join(data_base, 'test_images_ocr'), self.tokenizer),
+            batch_size=self.batch_size, shuffle=False,
+            collate_fn=lambda b: ocr_collate_fn(b, self.tokenizer.pad_token_id)
+        )
+        self.ngram_loader = DataLoader(
+            data_loader.ScrollLineDataset(os.path.join(data_base, 'n_gram_images', 'tokens.parquet'),
+                                                     os.path.join(data_base, 'n_gram_images'), self.tokenizer),
+            batch_size=self.batch_size, shuffle=False,
+            collate_fn=lambda b: ocr_collate_fn(b, self.tokenizer.pad_token_id)
+        )
+        self.test_loader = DataLoader(
+            data_loader.ScrollLineDatasetWithPadding(os.path.join(test_base, 'tokens.parquet'),
+                                                     test_base, self.tokenizer, self.image_size),
+            batch_size=self.batch_size, shuffle=False,
+            collate_fn=lambda b: ocr_collate_fn(b, self.tokenizer.pad_token_id)
+        )
+
+    def train(self):
+        self.model.train()
+        average_loss = 0
+        count = 0
+        evaluate = False
+        for images, targets in self.train_loader:
+            if evaluate or (count > 0 and count % 500== 0):
+                self._evaluate_and_log(average_loss / 100)
+                average_loss = 0
+
+            images, targets = images.to(self.device), targets.to(self.device)
+            tgt_input, tgt_output = targets[:, :-1], targets[:, 1:]
+            logits = self.model(images, tgt_input)
+            loss = self.criterion(logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1))
+            loss.backward()
+
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+            self.optimizer.step()
+            self.scheduler.step()
+            self.optimizer.zero_grad()
+
+            average_loss += loss.item() / len(images)
+            count += 1
+
+        torch.save(self.model.state_dict(), os.path.join(self.save_dir, "model_weights.pth"))
+
+    def _evaluate_and_log(self, train_loss):
+        self.model.eval()
+
+        test_acc = inference.evaluate_accuracy(self.model, self.test_loader, self.tokenizer, self.device)
+        test_token_acc = inference.token_accuracy(self.model, self.test_loader, self.tokenizer, self.device)
 
 
-        images = images.to(device)
-        target_sequences = target_sequences.to(device)
+        val_loss = evaluate_loss(self.model, self.criterion, self.val_loader, self.device)
+        val_acc = inference.evaluate_accuracy(self.model, self.val_loader, self.tokenizer, self.device)
+        val_token_acc = inference.token_accuracy(self.model, self.val_loader, self.tokenizer, self.device)
 
-        optimizer.zero_grad()
 
-        # Shift inputs for teacher forcing
-        tgt_input = target_sequences[:, :-1]   
-        tgt_output = target_sequences[:, 1:]     
+        ngram_acc = inference.evaluate_accuracy(self.model, self.ngram_loader, self.tokenizer, self.device)
+        ngram_token_acc = inference.token_accuracy(self.model, self.ngram_loader, self.tokenizer, self.device)
 
-        logits = model(images, tgt_input)  # (batch_size, seq_len, vocab_size)
-        loss = criterion(logits.reshape(-1, logits.size(-1)), tgt_output.reshape(-1))
+        current_lr = self.optimizer.param_groups[0]['lr']
 
-        loss.backward()
-
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        optimizer.step()
-        scheduler.step()
-
-        average_loss += loss.item()/len(images)
-        count += 1
-
-    torch.save(model.state_dict(), "model_weights.pth")
+        log_metrics(self.save_dir, train_loss, val_loss, val_acc, val_token_acc, test_acc, test_token_acc,
+                    ngram_acc, ngram_token_acc, current_lr)
+        torch.save(self.model.state_dict(), os.path.join(self.save_dir, "model_weights.pth"))
+        self.model.train()
 
 
 if __name__ == "__main__":
-    train()
+    trainer = OCRTrainer()
+    trainer.train()

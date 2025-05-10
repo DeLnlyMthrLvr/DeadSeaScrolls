@@ -1,0 +1,188 @@
+Accuracy: 20.67%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 19.68%
+Token-Level Accuracy (Teacher Forcing): 10.28%
+Accuracy: 21.09%
+Token-Level Accuracy (Teacher Forcing): 12.27%
+Accuracy: 40.62%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 24.15%
+Token-Level Accuracy (Teacher Forcing): 10.37%
+Accuracy: 25.52%
+Token-Level Accuracy (Teacher Forcing): 12.78%
+Accuracy: 51.11%
+Token-Level Accuracy (Teacher Forcing): 5.81%
+Accuracy: 30.57%
+Token-Level Accuracy (Teacher Forcing): 8.98%
+Accuracy: 32.86%
+Token-Level Accuracy (Teacher Forcing): 10.94%
+Accuracy: 55.00%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 32.60%
+Token-Level Accuracy (Teacher Forcing): 10.97%
+Accuracy: 33.81%
+Token-Level Accuracy (Teacher Forcing): 11.66%
+Accuracy: 62.50%
+Token-Level Accuracy (Teacher Forcing): 5.59%
+Accuracy: 36.29%
+Token-Level Accuracy (Teacher Forcing): 14.74%
+Accuracy: 36.60%
+Token-Level Accuracy (Teacher Forcing): 14.94%
+Accuracy: 45.45%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 36.59%
+Token-Level Accuracy (Teacher Forcing): 19.62%
+Accuracy: 36.56%
+Token-Level Accuracy (Teacher Forcing): 21.45%
+Accuracy: 48.84%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 32.96%
+Token-Level Accuracy (Teacher Forcing): 20.33%
+Accuracy: 34.41%
+Token-Level Accuracy (Teacher Forcing): 23.10%
+Accuracy: 55.26%
+Token-Level Accuracy (Teacher Forcing): 5.38%
+Accuracy: 37.66%
+Token-Level Accuracy (Teacher Forcing): 20.92%
+Accuracy: 37.78%
+Token-Level Accuracy (Teacher Forcing): 23.80%
+Accuracy: 57.89%
+Token-Level Accuracy (Teacher Forcing): 4.95%
+Accuracy: 37.10%
+Token-Level Accuracy (Teacher Forcing): 27.56%
+Accuracy: 37.22%
+Token-Level Accuracy (Teacher Forcing): 31.09%
+Accuracy: 50.00%
+Token-Level Accuracy (Teacher Forcing): 5.59%
+Accuracy: 38.08%
+Token-Level Accuracy (Teacher Forcing): 32.94%
+Accuracy: 39.03%
+Token-Level Accuracy (Teacher Forcing): 37.47%
+Accuracy: 48.65%
+Token-Level Accuracy (Teacher Forcing): 4.52%
+Accuracy: 38.86%
+Token-Level Accuracy (Teacher Forcing): 30.13%
+Accuracy: 41.53%
+Token-Level Accuracy (Teacher Forcing): 34.86%
+Accuracy: 50.00%
+Token-Level Accuracy (Teacher Forcing): 4.09%
+Accuracy: 37.45%
+Token-Level Accuracy (Teacher Forcing): 29.27%
+Accuracy: 40.92%
+Token-Level Accuracy (Teacher Forcing): 34.54%
+Accuracy: 46.34%
+Token-Level Accuracy (Teacher Forcing): 5.38%
+Accuracy: 39.90%
+Token-Level Accuracy (Teacher Forcing): 35.97%
+Accuracy: 42.33%
+Token-Level Accuracy (Teacher Forcing): 43.01%
+Accuracy: 48.72%
+Token-Level Accuracy (Teacher Forcing): 4.95%
+Accuracy: 40.40%
+Token-Level Accuracy (Teacher Forcing): 32.49%
+Accuracy: 43.48%
+Token-Level Accuracy (Teacher Forcing): 38.66%
+Accuracy: 47.62%
+Token-Level Accuracy (Teacher Forcing): 5.38%
+Accuracy: 37.42%
+Token-Level Accuracy (Teacher Forcing): 26.54%
+Accuracy: 40.22%
+Token-Level Accuracy (Teacher Forcing): 34.40%
+Accuracy: 50.00%
+Token-Level Accuracy (Teacher Forcing): 5.16%
+Accuracy: 36.10%
+Token-Level Accuracy (Teacher Forcing): 25.07%
+Accuracy: 39.15%
+Token-Level Accuracy (Teacher Forcing): 31.73%
+Accuracy: 45.24%
+Token-Level Accuracy (Teacher Forcing): 4.73%
+Accuracy: 38.42%
+Token-Level Accuracy (Teacher Forcing): 24.28%
+Accuracy: 40.78%
+Token-Level Accuracy (Teacher Forcing): 31.46%
+Accuracy: 44.19%
+Token-Level Accuracy (Teacher Forcing): 4.73%
+Accuracy: 37.82%
+Token-Level Accuracy (Teacher Forcing): 27.06%
+Accuracy: 39.28%
+Token-Level Accuracy (Teacher Forcing): 35.55%
+Accuracy: 45.45%
+Token-Level Accuracy (Teacher Forcing): 5.16%
+Accuracy: 37.63%
+Token-Level Accuracy (Teacher Forcing): 25.90%
+Accuracy: 37.60%
+Token-Level Accuracy (Teacher Forcing): 34.74%
+Accuracy: 46.51%
+Token-Level Accuracy (Teacher Forcing): 5.16%
+Accuracy: 38.18%
+Token-Level Accuracy (Teacher Forcing): 25.37%
+Accuracy: 39.31%
+Token-Level Accuracy (Teacher Forcing): 33.46%
+Accuracy: 46.51%
+Token-Level Accuracy (Teacher Forcing): 4.95%
+Accuracy: 37.76%
+Token-Level Accuracy (Teacher Forcing): 24.48%
+Accuracy: 39.97%
+Token-Level Accuracy (Teacher Forcing): 34.54%
+Accuracy: 47.62%
+Token-Level Accuracy (Teacher Forcing): 5.16%
+Accuracy: 37.12%
+Token-Level Accuracy (Teacher Forcing): 26.53%
+Accuracy: 38.68%
+Token-Level Accuracy (Teacher Forcing): 36.05%
+Accuracy: 48.84%
+Token-Level Accuracy (Teacher Forcing): 5.38%
+Accuracy: 37.96%
+Token-Level Accuracy (Teacher Forcing): 26.72%
+Accuracy: 37.83%
+Token-Level Accuracy (Teacher Forcing): 35.69%
+Accuracy: 48.84%
+Token-Level Accuracy (Teacher Forcing): 5.38%
+Accuracy: 36.27%
+Token-Level Accuracy (Teacher Forcing): 28.13%
+
+###############################################################################
+Hábrók Cluster
+Job 17103235 for user s3799042
+Finished at: Thu May  8 19:06:30 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17103235
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : v100v2gpu18
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : TIMEOUT  
+Submit                         : 2025-05-08T16:40:12
+Start                          : 2025-05-08T17:36:07
+End                            : 2025-05-08T19:06:25
+Reserved walltime              : 01:30:00
+Used walltime                  : 01:30:18
+Used CPU time                  : 02:13:58 (Efficiency: 18.54%)
+% User (Computation)           : 72.06%
+% System (I/O)                 : 27.94%
+Total memory reserved          : 32G
+Maximum memory used            : 6.39G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 19%
+Max GPU memory used            : 2.26G
+Hints and tips      :
+ 1) The GPU utilization is low, please check if your code can be optimized,
+    or if you can move your input data to fast local storage.
+ *) For more information on these issues see:
+    https://wiki.hpc.rug.nl/habrok/additional_information/job_hints
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

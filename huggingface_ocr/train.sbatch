@@ -6,7 +6,7 @@
 #SBATCH --gpus-per-node=v100:1
 #SBATCH --mem=32G
 #SBATCH --nodes=1
-#SBATCH --time=2:00:00
+#SBATCH --time=12:00:00
 
 # Load necessary modules (optional, depends on your cluster)
 module load CUDA/12.4.0
@@ -15,4 +15,4 @@ module load CUDA/12.4.0
 source /home3/s3799042/lc0_venv2/bin/activate
 
 # Run your training script
-python3 huggingface_ocr.py
+python3 huggingface_ocr2.py

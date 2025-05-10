@@ -1,0 +1,83 @@
+noise_3
+Epoch 1 | Training Loss: 1.8638
+Epoch 1 | Validation Loss: 8.0849
+Epoch 1 | Training Loss: 1.6752
+Epoch 1 | Validation Loss: 7.8219
+Epoch 1 | Training Loss: 1.5346
+Epoch 1 | Validation Loss: 7.8593
+Epoch 1 | Training Loss: 1.4735
+Epoch 1 | Validation Loss: 8.6068
+Epoch 1 | Training Loss: 1.4825
+Epoch 1 | Validation Loss: 7.9525
+noise_1
+Epoch 2 | Training Loss: 1.1753
+Epoch 2 | Validation Loss: 9.8403
+Epoch 2 | Training Loss: 1.1203
+Epoch 2 | Validation Loss: 9.0512
+Epoch 2 | Training Loss: 1.0345
+Epoch 2 | Validation Loss: 8.7637
+Epoch 2 | Training Loss: 1.0014
+Epoch 2 | Validation Loss: 8.6039
+Epoch 2 | Training Loss: 0.9540
+Epoch 2 | Validation Loss: 9.1119
+noise_4
+Epoch 3 | Training Loss: 1.2259
+Epoch 3 | Validation Loss: 8.3579
+Epoch 3 | Training Loss: 1.1876
+Epoch 3 | Validation Loss: 8.3630
+Epoch 3 | Training Loss: 1.1627
+Epoch 3 | Validation Loss: 7.1839
+Epoch 3 | Training Loss: 1.1362
+Epoch 3 | Validation Loss: 8.2755
+Epoch 3 | Training Loss: 1.1052
+Epoch 3 | Validation Loss: 8.4485
+noise_2
+Epoch 4 | Training Loss: 0.8933
+Epoch 4 | Validation Loss: 9.1719
+Epoch 4 | Training Loss: 0.8282
+Epoch 4 | Validation Loss: 9.2405
+Epoch 4 | Training Loss: 0.7834
+Epoch 4 | Validation Loss: 8.4293
+Epoch 4 | Training Loss: 0.7614
+Epoch 4 | Validation Loss: 9.2171
+
+###############################################################################
+Hábrók Cluster
+Job 17144664 for user s3799042
+Finished at: Sat May 10 10:15:17 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17144664
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpumedium
+Nodes                          : v100v2gpu8
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : CANCELLED by user  
+Submit                         : 2025-05-09T23:05:41
+Start                          : 2025-05-10T04:38:16
+End                            : 2025-05-10T10:15:12
+Reserved walltime              : 12:00:00
+Used walltime                  : 05:36:56
+Used CPU time                  : 06:20:03 (Efficiency: 14.10%)
+% User (Computation)           : 87.77%
+% System (I/O)                 : 12.23%
+Total memory reserved          : 32G
+Maximum memory used            : 4.00G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 98%
+Max GPU memory used            : 17.64G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

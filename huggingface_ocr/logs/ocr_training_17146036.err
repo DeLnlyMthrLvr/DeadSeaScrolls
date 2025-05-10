@@ -1,0 +1,63 @@
+Config of the encoder: <class 'transformers.models.vit.modeling_vit.ViTModel'> is overwritten by shared encoder config: ViTConfig {
+  "attention_probs_dropout_prob": 0.0,
+  "encoder_stride": 16,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.0,
+  "hidden_size": 768,
+  "image_size": 384,
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "layer_norm_eps": 1e-12,
+  "model_type": "vit",
+  "num_attention_heads": 12,
+  "num_channels": 3,
+  "num_hidden_layers": 12,
+  "patch_size": 16,
+  "pooler_act": "tanh",
+  "pooler_output_size": 768,
+  "qkv_bias": false,
+  "torch_dtype": "float32",
+  "transformers_version": "4.51.0"
+}
+
+Config of the decoder: <class 'transformers.models.trocr.modeling_trocr.TrOCRForCausalLM'> is overwritten by shared decoder config: TrOCRConfig {
+  "activation_dropout": 0.0,
+  "activation_function": "relu",
+  "add_cross_attention": true,
+  "attention_dropout": 0.0,
+  "bos_token_id": 0,
+  "classifier_dropout": 0.0,
+  "cross_attention_hidden_size": 768,
+  "d_model": 1024,
+  "decoder_attention_heads": 16,
+  "decoder_ffn_dim": 4096,
+  "decoder_layerdrop": 0.0,
+  "decoder_layers": 12,
+  "decoder_start_token_id": 2,
+  "dropout": 0.1,
+  "eos_token_id": 2,
+  "init_std": 0.02,
+  "is_decoder": true,
+  "layernorm_embedding": false,
+  "max_position_embeddings": 1024,
+  "model_type": "trocr",
+  "pad_token_id": 1,
+  "scale_embedding": true,
+  "tie_word_embeddings": false,
+  "torch_dtype": "float32",
+  "transformers_version": "4.51.0",
+  "use_cache": false,
+  "use_learned_position_embeddings": false,
+  "vocab_size": 31
+}
+
+/home3/s3799042/lc0_venv2/lib/python3.11/site-packages/transformers/models/vit/feature_extraction_vit.py:28: FutureWarning: The class ViTFeatureExtractor is deprecated and will be removed in version 5 of Transformers. Please use ViTImageProcessor instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/home3/s3799042/DeadSeaScrolls/huggingface_ocr/huggingface_ocr3.py", line 178, in <module>
+    val_tokens, val_scrolls, val_lines = next(iterator)
+                                         ^^^^^^^^^^^^^^
+  File "/home3/s3799042/DeadSeaScrolls/noise_designer.py", line 352, in load_batches
+    level_path.glob("chunk_*.npz"),
+    ^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'glob'

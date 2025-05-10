@@ -15,7 +15,7 @@ import alphabet
 class OCR():
     def __init__(self):
         self.tokenizer = Tokenizer(alphabet.char_token)
-        self.model = VisionEncoderDecoderModel.from_pretrained('/home3/s3799042/DeadSeaScrolls/trocr-hebrew-finetuned')
+        self.model = VisionEncoderDecoderModel.from_pretrained("/scratch/s3799042/weights/huggingface_ocr/2025-05-10_04-39-16/trocr-hebrew-finetuned_2/")
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = self.model.to(self.device)
         self.feature_extractor = ViTFeatureExtractor.from_pretrained('microsoft/trocr-base-stage1')

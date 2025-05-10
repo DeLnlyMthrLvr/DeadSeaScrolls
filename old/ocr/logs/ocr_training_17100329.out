@@ -1,0 +1,141 @@
+Accuracy: 19.17%
+Token-Level Accuracy (Teacher Forcing): 19.46%
+Accuracy: 20.24%
+Token-Level Accuracy (Teacher Forcing): 8.17%
+Accuracy: 18.02%
+Token-Level Accuracy (Teacher Forcing): 18.52%
+Accuracy: 23.47%
+Token-Level Accuracy (Teacher Forcing): 20.50%
+Accuracy: 27.66%
+Token-Level Accuracy (Teacher Forcing): 6.67%
+Accuracy: 24.42%
+Token-Level Accuracy (Teacher Forcing): 18.99%
+Accuracy: 22.09%
+Token-Level Accuracy (Teacher Forcing): 24.59%
+Accuracy: 43.64%
+Token-Level Accuracy (Teacher Forcing): 7.53%
+Accuracy: 23.00%
+Token-Level Accuracy (Teacher Forcing): 21.19%
+Accuracy: 24.15%
+Token-Level Accuracy (Teacher Forcing): 29.56%
+Accuracy: 40.00%
+Token-Level Accuracy (Teacher Forcing): 8.60%
+Accuracy: 23.41%
+Token-Level Accuracy (Teacher Forcing): 24.75%
+Accuracy: 24.05%
+Token-Level Accuracy (Teacher Forcing): 32.13%
+Accuracy: 35.21%
+Token-Level Accuracy (Teacher Forcing): 8.60%
+Accuracy: 23.41%
+Token-Level Accuracy (Teacher Forcing): 27.28%
+Accuracy: 23.99%
+Token-Level Accuracy (Teacher Forcing): 36.99%
+Accuracy: 38.46%
+Token-Level Accuracy (Teacher Forcing): 9.03%
+Accuracy: 25.17%
+Token-Level Accuracy (Teacher Forcing): 32.12%
+Accuracy: 34.40%
+Token-Level Accuracy (Teacher Forcing): 50.74%
+Accuracy: 37.29%
+Token-Level Accuracy (Teacher Forcing): 9.03%
+Accuracy: 37.26%
+Token-Level Accuracy (Teacher Forcing): 53.34%
+Accuracy: 37.93%
+Token-Level Accuracy (Teacher Forcing): 66.56%
+Accuracy: 34.38%
+Token-Level Accuracy (Teacher Forcing): 8.39%
+Accuracy: 45.55%
+Token-Level Accuracy (Teacher Forcing): 67.57%
+Accuracy: 40.12%
+Token-Level Accuracy (Teacher Forcing): 68.53%
+Accuracy: 35.38%
+Token-Level Accuracy (Teacher Forcing): 10.32%
+Accuracy: 50.56%
+Token-Level Accuracy (Teacher Forcing): 73.98%
+Accuracy: 41.72%
+Token-Level Accuracy (Teacher Forcing): 78.68%
+Accuracy: 30.77%
+Token-Level Accuracy (Teacher Forcing): 9.03%
+Accuracy: 53.30%
+Token-Level Accuracy (Teacher Forcing): 79.63%
+Accuracy: 47.27%
+Token-Level Accuracy (Teacher Forcing): 80.28%
+Accuracy: 31.17%
+Token-Level Accuracy (Teacher Forcing): 9.03%
+Accuracy: 59.24%
+Token-Level Accuracy (Teacher Forcing): 83.50%
+Accuracy: 49.95%
+Token-Level Accuracy (Teacher Forcing): 84.66%
+Accuracy: 39.06%
+Token-Level Accuracy (Teacher Forcing): 7.31%
+Accuracy: 61.46%
+Token-Level Accuracy (Teacher Forcing): 86.08%
+Accuracy: 54.33%
+Token-Level Accuracy (Teacher Forcing): 87.66%
+Accuracy: 33.78%
+Token-Level Accuracy (Teacher Forcing): 7.96%
+Accuracy: 64.16%
+Token-Level Accuracy (Teacher Forcing): 87.99%
+Accuracy: 58.70%
+Token-Level Accuracy (Teacher Forcing): 87.73%
+Accuracy: 31.43%
+Token-Level Accuracy (Teacher Forcing): 7.31%
+Accuracy: 66.52%
+Token-Level Accuracy (Teacher Forcing): 89.52%
+Accuracy: 60.02%
+Token-Level Accuracy (Teacher Forcing): 89.49%
+Accuracy: 28.38%
+Token-Level Accuracy (Teacher Forcing): 7.96%
+Accuracy: 69.77%
+Token-Level Accuracy (Teacher Forcing): 90.69%
+Accuracy: 64.26%
+Token-Level Accuracy (Teacher Forcing): 90.53%
+Accuracy: 33.82%
+Token-Level Accuracy (Teacher Forcing): 7.53%
+Accuracy: 71.39%
+Token-Level Accuracy (Teacher Forcing): 91.81%
+Accuracy: 64.47%
+Token-Level Accuracy (Teacher Forcing): 92.35%
+Accuracy: 30.67%
+Token-Level Accuracy (Teacher Forcing): 8.39%
+
+###############################################################################
+Hábrók Cluster
+Job 17100329 for user s3799042
+Finished at: Thu May  8 16:32:47 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17100329
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : a100gpu1
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : CANCELLED by user  
+Submit                         : 2025-05-08T15:23:21
+Start                          : 2025-05-08T15:30:19
+End                            : 2025-05-08T16:32:42
+Reserved walltime              : 01:30:00
+Used walltime                  : 01:02:23
+Used CPU time                  : 02:20:55 (Efficiency: 28.24%)
+% User (Computation)           : 69.64%
+% System (I/O)                 : 30.36%
+Total memory reserved          : 32G
+Maximum memory used            : 2.96G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 38%
+Max GPU memory used            : 2.38G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

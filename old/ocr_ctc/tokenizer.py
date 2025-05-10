@@ -1,10 +1,5 @@
 import numpy as np
-import sys
-import os
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-import alphabet
 class Tokenizer:
     def __init__(self, token_id_dict):
         # Special tokens
@@ -20,7 +15,7 @@ class Tokenizer:
         })
 
         self.token_to_id = token_id_dict
-        self.id_to_token = alphabet.enum_to_hebrew
+        self.id_to_token = {idx: token for token, idx in self.token_to_id.items()}
         
         # IDs for convenience
         self.pad_token_id = self.token_to_id[self.pad_token]
@@ -35,16 +30,10 @@ class Tokenizer:
     def add_control_tokens(self, tokens):
         return np.concatenate([np.array([self.bos_token_id]), tokens, np.array([self.eos_token_id])])
     
-    def id_to_hebrew_char(self, id: int) -> str:
-        enum_member = next((k for k, v in alphabet.char_token.items() if v == id), None)
-        if enum_member is None:
-            return ''
-        return alphabet.enum_to_hebrew.get(enum_member, '')
-
     def decode(self, ids):
         # Turn list of IDs into string, ignore special tokens
-        tokens = [self.id_to_hebrew_char(i) for i in ids if i not in [self.bos_token_id, self.eos_token_id, self.pad_token_id]]
+        tokens = [self.id_to_token[i] for i in ids if i not in [self.bos_token_id, self.eos_token_id, self.pad_token_id]]
         return ''.join(tokens)
     
     def vocab_size(self):
-        return len(self.token_to_id)
+        return len(self.tokens)

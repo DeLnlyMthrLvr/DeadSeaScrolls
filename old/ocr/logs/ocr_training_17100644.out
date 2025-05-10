@@ -1,0 +1,50 @@
+Accuracy: 19.21%
+Token-Level Accuracy (Teacher Forcing): 18.43%
+Accuracy: 20.00%
+Token-Level Accuracy (Teacher Forcing): 7.74%
+
+###############################################################################
+Hábrók Cluster
+Job 17100644 for user s3799042
+Finished at: Thu May  8 15:57:36 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17100644
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : v100v2gpu6
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : CANCELLED by user  
+Submit                         : 2025-05-08T15:26:56
+Start                          : 2025-05-08T15:50:39
+End                            : 2025-05-08T15:57:31
+Reserved walltime              : 01:30:00
+Used walltime                  : 00:06:52
+Used CPU time                  : 00:13:12 (Efficiency: 24.04%)
+% User (Computation)           : 74.62%
+% System (I/O)                 : 25.38%
+Total memory reserved          : 32G
+Maximum memory used            : 2.50G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 21%
+Max GPU memory used            : 2.26G
+Hints and tips      :
+ 1) The GPU utilization is low, please check if your code can be optimized,
+    or if you can move your input data to fast local storage.
+ *) For more information on these issues see:
+    https://wiki.hpc.rug.nl/habrok/additional_information/job_hints
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

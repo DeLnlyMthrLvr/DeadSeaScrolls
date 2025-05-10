@@ -1,0 +1,80 @@
+Accuracy: 23.44%
+Token-Level Accuracy (Teacher Forcing): 16.81%
+Accuracy: 28.42%
+Token-Level Accuracy (Teacher Forcing): 7.74%
+Accuracy: 25.13%
+Token-Level Accuracy (Teacher Forcing): 13.38%
+Accuracy: 35.14%
+Token-Level Accuracy (Teacher Forcing): 14.39%
+Accuracy: 63.64%
+Token-Level Accuracy (Teacher Forcing): 4.73%
+Accuracy: 36.20%
+Token-Level Accuracy (Teacher Forcing): 11.31%
+Accuracy: 29.07%
+Token-Level Accuracy (Teacher Forcing): 16.02%
+Accuracy: 60.00%
+Token-Level Accuracy (Teacher Forcing): 5.16%
+Accuracy: 30.95%
+Token-Level Accuracy (Teacher Forcing): 12.58%
+Accuracy: 28.96%
+Token-Level Accuracy (Teacher Forcing): 23.00%
+Accuracy: 70.00%
+Token-Level Accuracy (Teacher Forcing): 5.16%
+Accuracy: 27.15%
+Token-Level Accuracy (Teacher Forcing): 15.61%
+Accuracy: 27.06%
+Token-Level Accuracy (Teacher Forcing): 26.65%
+Accuracy: 52.63%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 26.18%
+Token-Level Accuracy (Teacher Forcing): 18.84%
+Accuracy: 35.43%
+Token-Level Accuracy (Teacher Forcing): 27.07%
+Accuracy: 60.00%
+Token-Level Accuracy (Teacher Forcing): 5.38%
+
+###############################################################################
+Hábrók Cluster
+Job 17102233 for user s3799042
+Finished at: Thu May  8 16:30:19 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17102233
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : v100v2gpu6
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : CANCELLED by user  
+Submit                         : 2025-05-08T16:00:59
+Start                          : 2025-05-08T16:02:50
+End                            : 2025-05-08T16:30:14
+Reserved walltime              : 01:30:00
+Used walltime                  : 00:27:24
+Used CPU time                  : 00:39:12 (Efficiency: 17.89%)
+% User (Computation)           : 68.62%
+% System (I/O)                 : 31.38%
+Total memory reserved          : 32G
+Maximum memory used            : 6.15G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 17%
+Max GPU memory used            : 2.26G
+Hints and tips      :
+ 1) The GPU utilization is low, please check if your code can be optimized,
+    or if you can move your input data to fast local storage.
+ *) For more information on these issues see:
+    https://wiki.hpc.rug.nl/habrok/additional_information/job_hints
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

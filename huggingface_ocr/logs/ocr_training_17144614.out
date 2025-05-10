@@ -1,0 +1,66 @@
+noise_0
+Epoch 1 | Training Loss: 3.0768
+Epoch 1 | Validation Loss: 3.0093
+Epoch 1 | Training Loss: 2.9268
+Epoch 1 | Validation Loss: 3.1302
+Epoch 1 | Training Loss: 2.4030
+Epoch 1 | Validation Loss: 5.9584
+Epoch 1 | Training Loss: 2.0667
+Epoch 1 | Validation Loss: 6.0479
+Epoch 1 | Training Loss: 1.9171
+Epoch 1 | Validation Loss: 7.3309
+noise_4
+Epoch 2 | Training Loss: 2.0811
+Epoch 2 | Validation Loss: 7.7777
+Epoch 2 | Training Loss: 1.9914
+Epoch 2 | Validation Loss: 6.8690
+Epoch 2 | Training Loss: 1.9127
+Epoch 2 | Validation Loss: 6.5434
+Epoch 2 | Training Loss: 1.8305
+Epoch 2 | Validation Loss: 7.6667
+Epoch 2 | Training Loss: 1.6986
+Epoch 2 | Validation Loss: 7.4675
+noise_1
+Epoch 3 | Training Loss: 1.4057
+Epoch 3 | Validation Loss: 9.0984
+
+###############################################################################
+Hábrók Cluster
+Job 17144614 for user s3799042
+Finished at: Sat May 10 02:43:33 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17144614
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpumedium
+Nodes                          : a100gpu5
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : FAILED  
+Submit                         : 2025-05-09T23:04:25
+Start                          : 2025-05-10T00:20:39
+End                            : 2025-05-10T02:43:29
+Reserved walltime              : 08:00:00
+Used walltime                  : 02:22:50
+Used CPU time                  : 02:43:05 (Efficiency: 14.27%)
+% User (Computation)           : 84.87%
+% System (I/O)                 : 15.13%
+Total memory reserved          : 32G
+Maximum memory used            : 3.43G
+Requested GPUs                 : a100=1
+Allocated GPUs                 : a100=1
+Max GPU utilization            : 99%
+Max GPU memory used            : 17.83G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

@@ -1,0 +1,44 @@
+noise_3
+Epoch 1 | Training Loss: 2.1347
+Epoch 1 | Validation Loss: 7.1595
+
+###############################################################################
+Hábrók Cluster
+Job 17137083 for user s3799042
+Finished at: Fri May  9 21:53:08 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17137083
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : v100v2gpu17
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : FAILED  
+Submit                         : 2025-05-09T17:40:21
+Start                          : 2025-05-09T21:33:21
+End                            : 2025-05-09T21:53:04
+Reserved walltime              : 02:00:00
+Used walltime                  : 00:19:43
+Used CPU time                  : 00:19:31 (Efficiency: 12.37%)
+% User (Computation)           : 85.62%
+% System (I/O)                 : 14.38%
+Total memory reserved          : 32G
+Maximum memory used            : 2.76G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 98%
+Max GPU memory used            : 17.54G
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

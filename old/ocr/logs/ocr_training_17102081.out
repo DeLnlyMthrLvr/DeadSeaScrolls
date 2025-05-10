@@ -1,0 +1,98 @@
+Accuracy: 23.92%
+Token-Level Accuracy (Teacher Forcing): 13.83%
+Accuracy: 28.43%
+Token-Level Accuracy (Teacher Forcing): 7.31%
+Accuracy: 22.54%
+Token-Level Accuracy (Teacher Forcing): 15.81%
+Accuracy: 30.82%
+Token-Level Accuracy (Teacher Forcing): 13.53%
+Accuracy: 52.50%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 30.46%
+Token-Level Accuracy (Teacher Forcing): 15.56%
+Accuracy: 30.11%
+Token-Level Accuracy (Teacher Forcing): 15.82%
+Accuracy: 42.31%
+Token-Level Accuracy (Teacher Forcing): 7.74%
+Accuracy: 29.08%
+Token-Level Accuracy (Teacher Forcing): 18.88%
+Accuracy: 37.25%
+Token-Level Accuracy (Teacher Forcing): 14.11%
+Accuracy: 48.89%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 37.16%
+Token-Level Accuracy (Teacher Forcing): 16.00%
+Accuracy: 45.43%
+Token-Level Accuracy (Teacher Forcing): 19.07%
+Accuracy: 47.73%
+Token-Level Accuracy (Teacher Forcing): 6.45%
+Accuracy: 41.62%
+Token-Level Accuracy (Teacher Forcing): 22.22%
+Accuracy: 40.14%
+Token-Level Accuracy (Teacher Forcing): 27.94%
+Accuracy: 42.86%
+Token-Level Accuracy (Teacher Forcing): 6.45%
+Accuracy: 38.06%
+Token-Level Accuracy (Teacher Forcing): 33.65%
+Accuracy: 39.94%
+Token-Level Accuracy (Teacher Forcing): 27.69%
+Accuracy: 44.90%
+Token-Level Accuracy (Teacher Forcing): 6.24%
+Accuracy: 38.56%
+Token-Level Accuracy (Teacher Forcing): 31.90%
+Accuracy: 40.03%
+Token-Level Accuracy (Teacher Forcing): 32.90%
+Accuracy: 50.00%
+Token-Level Accuracy (Teacher Forcing): 6.02%
+Accuracy: 38.28%
+Token-Level Accuracy (Teacher Forcing): 39.01%
+Accuracy: 40.32%
+Token-Level Accuracy (Teacher Forcing): 36.35%
+Accuracy: 52.50%
+Token-Level Accuracy (Teacher Forcing): 6.24%
+
+###############################################################################
+Hábrók Cluster
+Job 17102081 for user s3799042
+Finished at: Thu May  8 16:32:53 CEST 2025
+
+Job details:
+============
+
+Job ID                         : 17102081
+Name                           : ocr_training
+User                           : s3799042
+Partition                      : gpushort
+Nodes                          : v100v2gpu17
+Number of Nodes                : 1
+Cores                          : 8
+Number of Tasks                : 1
+State                          : CANCELLED by user  
+Submit                         : 2025-05-08T15:54:33
+Start                          : 2025-05-08T15:56:44
+End                            : 2025-05-08T16:32:48
+Reserved walltime              : 01:30:00
+Used walltime                  : 00:36:04
+Used CPU time                  : 00:53:27 (Efficiency: 18.52%)
+% User (Computation)           : 70.24%
+% System (I/O)                 : 29.76%
+Total memory reserved          : 32G
+Maximum memory used            : 6.27G
+Requested GPUs                 : v100=1
+Allocated GPUs                 : v100=1
+Max GPU utilization            : 19%
+Max GPU memory used            : 2.26G
+Hints and tips      :
+ 1) The GPU utilization is low, please check if your code can be optimized,
+    or if you can move your input data to fast local storage.
+ *) For more information on these issues see:
+    https://wiki.hpc.rug.nl/habrok/additional_information/job_hints
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################

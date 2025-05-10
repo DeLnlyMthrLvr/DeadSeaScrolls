@@ -16,10 +16,10 @@ import synthetic
 def pad(image: Image.Image, image_size: tuple):
     factor_height = image.height / image_size[0] 
     factor_width = image.width / image_size[1]
-    #left,top,right,bottom
+
     if factor_height * image_size[1] > image.width:
         padding = ((int)(factor_height * image_size[1] - image.width),0,0, 0)
-        return F.pad(image, padding, fill=255)
+        return F.pad(image, (padding, 0,0,0), fill=255)
     if factor_width * image_size[0] > image.height:
         padding = (0,0,0,(int)(factor_width * image_size[0] - image.height))
         return F.pad(image, padding, fill=255)
@@ -109,6 +109,7 @@ def create_noise_images(image_size):
 
     parquet_path = os.path.join(target_dir, "tokens.parquet")
 
+    #generator = synthetic.DataGenerator(settings=synthetic.SynthSettings(downscale_factor=downscale))
     perlin_strength = np.linspace(perlin_strength[0], perlin_strength[1], n_progress)
     warp_strength  = np.linspace(warp_strength[0], warp_strength[1], n_progress).round().astype(int)
     cutout_size = np.linspace(cutout_size[0], cutout_size[1], n_progress).round().astype(int)
@@ -146,7 +147,7 @@ def create_noise_images(image_size):
                     image_tokens = tokens_grams[i]
                     modified_scrolls = modified_scrolls_grams
                     lines = lines_grams
-
+                #image_tokens = tokens[i]
                 image_lines = synthetic.extract_lines_cc(modified_scrolls[i], lines[i])
                 n_indicies = min(len(image_tokens), len(image_lines))
                 rows = []

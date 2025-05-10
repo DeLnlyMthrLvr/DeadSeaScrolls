@@ -63,7 +63,6 @@ def token_accuracy(model, dataloader, tokenizer, device):
             logits = model(images, tgt_input)  # (batch_size, seq_len, vocab_size)
             predictions = logits.argmax(dim=-1)  # (batch_size, seq_len)
 
-            # Ignore padding tokens in accuracy calculation
             mask = tgt_output != pad_token_id
             correct = (predictions == tgt_output) & mask
 
@@ -83,7 +82,6 @@ def inference():
     vocab_size = 30
     mlp_ratio = 4
     dropout = 0.1
-    batch_size = 32
 
     image_size = (32, 416)
 

@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train_refactored.py", line 198, in <module>
+    trainer = OCRTrainer()
+              ^^^^^^^^^^^^
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train_refactored.py", line 82, in __init__
+    self.model = self._build_model()
+                 ^^^^^^^^^^^^^^^^^^^
+  File "/home3/s3799042/DeadSeaScrolls/ocr/train_refactored.py", line 105, in _build_model
+    model.load_state_dict(torch.load("/scratch/s3799042/weights/OCR/2025-05-08_16-03-01/model_weights_70_accuracy.pth"))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home3/s3799042/lc0_venv2/lib/python3.11/site-packages/torch/nn/modules/module.py", line 2513, in load_state_dict
+    raise TypeError(
+TypeError: Expected state_dict to be dict-like, got <class 'str'>.
