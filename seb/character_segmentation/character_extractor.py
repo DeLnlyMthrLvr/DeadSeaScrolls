@@ -50,8 +50,6 @@ class LetterCentresExtractor:
     def _get_bounding_boxes(self, img: np.ndarray) -> list[Box]:
         # 1) blur
         blur = self._gaussian_blur(img, self.sigma)
-        fig, ax = plt.subplots()
-        ax.imshow(blur, cmap="binary")
         # 2) threshold
         thr = self._threshold_otsu(blur)
         # 3) binary mask
