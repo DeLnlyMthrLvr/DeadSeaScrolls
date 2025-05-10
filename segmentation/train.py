@@ -119,7 +119,12 @@ class SegmentationDataset(Dataset):
         sm = torch.tensor(self.line_segmentations[index], dtype=torch.float)
         sm = symmetric_pad(sm, self.max_h, self.max_w)
 
-        return li, sm
+        C, _, _ = sm.shape
+        collapsed = sm.argmax(dim=0)
+        empty_mask = sm.sum(dim=0) == 0
+        collapsed[empty_mask] = C
+
+        return li, collapsed.to(torch.long)
 
 def train_epoch(
     model: UNet,
@@ -127,7 +132,7 @@ def train_epoch(
     validation_data: SegmentationDataset,
     optimizer: Optimizer,
     criterion: nn.Module,
-    batch_size: int = 400,
+    batch_size: int = 70,
 ):
 
     train_loader = DataLoader(dataset=train_data, batch_size=batch_size)
@@ -165,7 +170,7 @@ def train_level(
         model: UNet | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
-        experiment_name: str | None = "unetseg_fixed",
+        experiment_name: str | None = "CCE_pls",
         best_loss: float = float("inf")
     ):
 
@@ -190,7 +195,9 @@ def train_level(
     if optimizer is None:
         optimizer = torch.optim.AdamW(model.parameters(), lr=3 * 1e-4)
 
-    criterion = nn.BCEWithLogitsLoss()
+    weights = torch.ones(n_tokens + 1, device=model.device, dtype=torch.float)
+    weights[-1] = 1 / 3
+    criterion = nn.CrossEntropyLoss(weights)
 
     for _, train_scrolls, train_lines, train_seg in iterator:
         train_data = SegmentationDataset(train_scrolls, train_seg, train_lines)
@@ -215,7 +222,7 @@ def train_level(
     return model, optimizer, experiment_folder, best_loss
 
 if __name__ == "__main__":
-    model, optimizer, experiment_folder, best_loss =  train_level(pool = {0})
+    model, optimizer, experiment_folder, best_loss = train_level(pool = {0})
     for _ in range(5_000):
         _, _, _, best_loss = train_level(model=model, pool = {i for i in range(5)}, optimizer=optimizer, experiment_folder=experiment_folder, best_loss=best_loss)
 
