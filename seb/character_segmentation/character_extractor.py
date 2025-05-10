@@ -1,6 +1,5 @@
 import numpy as np
 from dataclasses import dataclass
-
 @dataclass
 class Box:
     minx: int
@@ -8,8 +7,11 @@ class Box:
     miny: int
     maxy: int
 
+    def _get_area(self):
+        return (self.maxx-self.minx) * (self.maxy-self.miny) 
+
 class LetterCentresExtractor:
-    def __init__(self, min_size: int = 10, pad: int = 5, sigma: float = 1.0):
+    def __init__(self, min_size: int = 50, pad: int = 5, sigma: float = 1.0):
         """
         min_size: minimum area (in pixels) for a region to keep
         pad: how many pixels to pad around each bounding box
@@ -28,13 +30,19 @@ class LetterCentresExtractor:
             raise ValueError("masks must be a numpy array of shape (27, H, W)")
 
         centres_all = []
+        _,H,W = masks.shape
+        mask_area = H * W
+
         for chan_idx in range(masks.shape[0]):
             img = masks[chan_idx]
             boxes = self._get_bounding_boxes(img)
             for box in boxes:
                 cy, cx = self._get_center(box)
-                centres_all.append((chan_idx, cy, cx))
-        return centres_all
+                if (box._get_area() / mask_area) > 0.5:
+                    continue
+                centres_all.append((cx,cy, chan_idx))
+        sorted_coords = sorted(centres_all,reverse=True, key=lambda x: x[0])
+        return sorted_coords
 
     def _get_bounding_boxes(self, img: np.ndarray) -> list[Box]:
         # 1) blur
@@ -61,7 +69,7 @@ class LetterCentresExtractor:
             minx = max(minx - self.pad, 0)
             maxy = min(maxy + self.pad, H)
             maxx = min(maxx + self.pad, W)
-            boxes.append(Box(minx=minx, maxx=maxx, miny=miny, maxy=maxy))
+            boxes.append(Box(minx=int(minx), maxx=int(maxx), miny=int(miny), maxy=int(maxy)))
         return boxes
 
     def _get_center(self, box: Box) -> tuple[int, int]:
