@@ -18,13 +18,13 @@ def find_local_maxima_2nd_derivative(arr):
 
     return np.array(maxima_indices)
 
-def label_hebrew_lines(seg: np.ndarray, min_gap: int = 5):
+def label_hebrew_lines(seg: np.ndarray, min_gap: int = 8):
 
     H, W   = seg.shape
     labels = np.zeros_like(seg, dtype=np.int32)
 
     proj = seg.sum(axis=1)
-    _n = 7
+    _n = 3
     proj = np.convolve(proj, np.ones(_n) / _n, mode="same")
 
     # peaks = find_local_maxima_2nd_derivative(proj)
@@ -100,11 +100,25 @@ def label_hebrew_lines(seg: np.ndarray, min_gap: int = 5):
     return labels, peaks, proj, starts
 
 
-def extract_lines_flood_fill(orignal_image: np.ndarray, mask: np.ndarray, inflate: int = 5) -> list[np.ndarray]:
+def extract_lines_flood_fill(orignal_image: np.ndarray, mask: np.ndarray, inflate: int = 1) -> list[np.ndarray]:
+
+    from matplotlib.colors import ListedColormap
+    colors = [
+        "#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD",
+        "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF",
+        "#AEC7E8", "#FFBB78", "#98DF8A", "#FF9896", "#C5B0D5"
+    ]
+
+    custom_cmap = ListedColormap(colors)
+
 
     oh, ow = orignal_image.shape
     labels, _, _, _ = label_hebrew_lines(mask)
 
+    # print(np.unique(labels).size - 1)
+
+    # plt.imshow(labels, cmap=custom_cmap)
+    # plt.show()
     # fig, ax = plt.subplots(1, 2)
     # ax[0].imshow(orignal_image)
     # ax[1].imshow(mask)
@@ -120,7 +134,7 @@ def extract_lines_flood_fill(orignal_image: np.ndarray, mask: np.ndarray, inflat
         gmask = labels == group
         inflated = binary_dilation(gmask, selem)
 
-        # fig, ax = plt.subplots(1, 2)
+        #fig, ax = plt.subplots(1, 2)
         # ax[0].imshow(inflated, cmap="binary")
         inflated = cv2.resize(inflated.astype(np.float32), (ow, oh), interpolation=cv2.INTER_NEAREST)
         # ax[1].imshow(inflated, cmap="binary")

@@ -197,8 +197,16 @@ class LineSegmenter(nn.Module):
             text_mask = img < 200
             xi, yi = np.where(text_mask)
 
+            xt, yt = img.shape
+
             xmin, xmax = np.min(xi), np.max(xi)
             ymin, ymax = np.min(yi), np.max(yi)
+
+            xmin = max(xmin - 15, 0)
+            ymin = max(ymin - 15, 0)
+
+            xmax = min(xmax + 15, xt)
+            ymax = min(ymax + 15, yt)
 
             img = np.copy(img[xmin:xmax, ymin:ymax])
             out.append(img)
@@ -211,12 +219,7 @@ class LineSegmenter(nn.Module):
         for img in images:
             s = max(img.shape)
 
-            if s > 400:
-                factor = 0.08
-            else:
-                continue
-                # not needed
-                factor = 0.9
+            factor = 0.22
 
             height, width = img.shape
             nh = int(height * factor)

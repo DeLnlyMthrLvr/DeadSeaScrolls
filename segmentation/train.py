@@ -1,6 +1,7 @@
 from pathlib import Path
 import pickle
 import cv2
+from matplotlib import pyplot as plt
 import numpy as np
 from datetime import datetime
 import sys
@@ -13,7 +14,7 @@ import torch.nn.functional as F
 from torch.optim import Optimizer
 from torch.utils.data import Dataset, DataLoader
 import tqdm
-from unet import UNet
+from unet import CharSegmenter
 import random
 
 from alphabet import char_to_token
@@ -52,7 +53,7 @@ def extract_lines_segs_cc(
         img: np.ndarray,
         seg: np.ndarray,
         binary_mask: np.ndarray,
-        min_area: int = 500,
+        min_area: int = 20,
         inflate: int = 6
     ) -> list[np.ndarray]:
 
@@ -93,19 +94,39 @@ def symmetric_pad(tensor, target_h, target_w):
     return F.pad(tensor, pad, value=0)
 
 class SegmentationDataset(Dataset):
-    def __init__(self, scrolls: np.ndarray, segs: np.ndarray, lines: np.ndarray):
+    def __init__(self, scrolls: np.ndarray, segs: np.ndarray, lines: np.ndarray, tokens: list[list[str]] | None = None):
 
         self.line_images = [] # Each image will be (h, w)
         self.line_segmentations = [] # each mask will be (27, h, w)
 
-        for scroll, seg, line in zip(scrolls, segs, lines, strict=True):
+        self.are_tokens = tokens is not None
+
+        if self.are_tokens:
+            self.line_tokens = []
+        else:
+            tokens = [None] * scrolls.shape[0]
+
+        for scroll, seg, line, token in zip(scrolls, segs, lines, tokens, strict=True):
             li, ls = extract_lines_segs_cc(scroll, seg, line)
             self.line_images.extend(li)
             self.line_segmentations.extend(ls)
 
+            # if len(token) != len(li):
+            #     fig, ax = plt.subplots(1, 2)
+
+            #     ax[0].imshow(scroll)
+            #     ax[1].imshow(line)
+
+            # assert len(token) == len(li), str(len(token)) + " " + str(len(li))
+
+            if self.are_tokens:
+                self.line_tokens.extend(token)
+
         self.max_h = max(img.shape[-2] for img in self.line_images)
         self.max_w = max(img.shape[-1] for img in self.line_images)
 
+        if self.are_tokens:
+            assert len(self.line_images) == len(self.line_tokens), f"{len(self.line_images)} {len(self.line_tokens)}"
 
     def __len__(self):
         return len(self.line_images)
@@ -123,11 +144,16 @@ class SegmentationDataset(Dataset):
         collapsed = sm.argmax(dim=0)
         empty_mask = sm.sum(dim=0) == 0
         collapsed[empty_mask] = C
+        collapsed = collapsed.to(torch.long)
 
-        return li, collapsed.to(torch.long)
+        if not self.are_tokens:
+            return li, collapsed
+        else:
+            return li, collapsed, self.line_tokens[index]
+
 
 def train_epoch(
-    model: UNet,
+    model: CharSegmenter,
     train_data: SegmentationDataset,
     validation_data: SegmentationDataset,
     optimizer: Optimizer,
@@ -167,7 +193,7 @@ def train_epoch(
 
 def train_level(
         pool: set,
-        model: UNet | None = None,
+        model: CharSegmenter | None = None,
         optimizer: Optimizer | None = None,
         experiment_folder: Path | None = None,
         experiment_name: str | None = "CCE_pls",
@@ -189,7 +215,7 @@ def train_level(
         experiment_folder = create_experiment_folder(experiment_name)
 
     if model is None:
-        model = UNet(n_tokens)
+        model = CharSegmenter(n_tokens)
         model = model.to(device)
 
     if optimizer is None:

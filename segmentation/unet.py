@@ -1,10 +1,17 @@
 from pathlib import Path
 from typing import Self
+import cv2
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class UNet(nn.Module):
+import sys
+sys.path.append(str(Path(__file__).parent))
+
+from centers import LetterCentresExtractor
+
+class CharSegmenter(nn.Module):
     def __init__(self, num_classes: int, base_ch: int = 30):
         super().__init__()
         self.num_classes = num_classes
@@ -108,3 +115,65 @@ class UNet(nn.Module):
         instance = instance.to(instance.device)
 
         return instance
+
+
+    def _resize(self, images: list[np.ndarray]) -> list[np.ndarray]:
+
+        out = []
+        for img in images:
+
+            factor = 0.5
+            height, width = img.shape
+            nh = int(height * factor)
+            nw = int(width * factor)
+
+            ri = cv2.resize(img, (nw, nh), interpolation=cv2.INTER_AREA)
+            out.append(ri)
+
+        return out
+
+    def label_mask_to_seg_mask(self, label_mask: np.ndarray) -> np.ndarray:
+
+        seg_mask = np.zeros((27, label_mask.shape[-2], label_mask.shape[-1]))
+
+
+        for label in np.unique(label_mask):
+
+            if label == 27:
+                continue
+
+            seg_mask[label, :, :] = (label_mask == label)
+
+        return seg_mask
+
+    def process_heterogenous_images(self, image_batches: list[list[np.ndarray]]) -> list[list[list[int]]]:
+
+        token_batches = []
+        extractor = LetterCentresExtractor()
+
+        for images in image_batches:
+            images = self._resize(images)
+
+            tokens_lines = []
+            for image in images:
+
+                image = torch.tensor(image, dtype=torch.float)
+                image = 1 - (image / 255)
+                image = image.to(self.device)
+                image = image.unsqueeze(0).unsqueeze(0)
+
+                with torch.no_grad():
+                    label_mask = self(image).squeeze()
+                    label_mask = F.softmax(label_mask, dim=0)
+                    label_mask = torch.argmax(label_mask, dim=0)
+
+
+                label_mask = label_mask.squeeze().cpu().numpy()
+                seg_mask = self.label_mask_to_seg_mask(label_mask)
+                centers = extractor(seg_mask)
+                tokens = [idx for (_, _, idx) in centers]
+                tokens_lines.append(tokens)
+
+            token_batches.append(tokens_lines)
+
+        return token_batches

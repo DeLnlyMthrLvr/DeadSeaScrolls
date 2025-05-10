@@ -4,14 +4,22 @@ import numpy as np
 from PIL import Image
 
 from linesegmentation.unet import LineSegmenter
+from segmentation.unet import CharSegmenter
+from alphabet import token_to_char
 
-UNET_BEST_PROJECTED = "20250507_203729_wide_unet_largek_fixed_final"
+LINE_UNET_BEST = "20250507_203729_wide_unet_largek_fixed_final"
+CHAR_UNET_BEST = "20250510_152746_CCE_final"
 
-def load_line_segmenter(run_name: str = UNET_BEST_PROJECTED) -> LineSegmenter:
+
+def load_line_segmenter(run_name: str = LINE_UNET_BEST) -> LineSegmenter:
     runs_folder = Path(__file__).parent / "linesegmentation" / "runs"
     model = LineSegmenter.load(runs_folder / run_name)
     return model
 
+def load_char_segmenter(run_name: str = CHAR_UNET_BEST) -> CharSegmenter:
+    runs_folder = Path(__file__).parent / "segmentation" / "runs"
+    model = CharSegmenter.load(runs_folder / run_name)
+    return model
 
 def load_images_names(folder: Path) -> tuple[list[np.ndarray], list[str]]:
 
@@ -56,42 +64,59 @@ def write_results(names: list[str], transcriptions: list[str]):
     print(f"Results located in {str(folder.relative_to(folder.parent.parent))}")
 
 
-def dummy_transformer(all_line_images: list[list[np.ndarray]]) -> list[list[int]]:
-    from bible import hebrew_to_enum
-    from alphabet import MEAN_CHAR_WIDTH
+def tokens_to_transcriptions(token_batches: list[list[list[int]]]) -> list[str]:
 
-    transcriptions = []
-    characters = list(hebrew_to_enum.keys())
+    documents = []
+    for token_lines in token_batches:
 
-    for line_images in all_line_images:
+        char_lines = []
 
-        transcription = []
-        for line_image in line_images:
+        for tokens in token_lines:
+            char_line = ''.join([token_to_char[token] for token in tokens])
+            char_lines.append(char_line)
 
-            h, w = line_image.shape
-            n = int(round(w / MEAN_CHAR_WIDTH))
-            chars = np.random.choice(characters, size=n, replace=True)
-            chars = ''.join(chars)
-            transcription.append(chars)
+        document = '\n'.join(char_lines)
+        documents.append(document)
 
-        transcriptions.append('\n'.join(transcription))
-
-    return transcriptions
-
+    return documents
 
 def pipeline(folder: Path):
 
     print("Loading stuff to RAM")
     images, names = load_images_names(folder)
     line_segmenter = load_line_segmenter()
+    char_segmenter = load_char_segmenter()
 
     print("Segmenting lines")
     all_line_images = line_segmenter.process_heterogenous_images(images)
 
-    print("OCR")
-    transcriptions = dummy_transformer(all_line_images)
+    print("Segmenting characters")
+    tokens = char_segmenter.process_heterogenous_images(all_line_images)
+    transcriptions = tokens_to_transcriptions(tokens)
 
     write_results(names, transcriptions)
+
+
+def test():
+
+    import Levenshtein
+    from pathlib import Path
+
+    hat_f = Path(__file__).parent / "results"
+    truth_f = Path(__file__).parent / "data" / "test_answers"
+
+    def test_file(name: str):
+
+        with open(hat_f / name, "r", encoding="utf-8") as f:
+            hat = f.read()
+
+        with open(truth_f / name, "r", encoding="utf-8") as f:
+            truth = f.read()
+
+        print(name, Levenshtein.ratio(truth, hat))
+
+    for ent in truth_f.iterdir():
+        test_file(ent.name)
 
 
 if __name__ == "__main__":
@@ -99,3 +124,4 @@ if __name__ == "__main__":
     print(sys.argv[1])
     path = Path(sys.argv[1])
     pipeline(path)
+    test()
