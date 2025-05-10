@@ -1,5 +1,8 @@
 import numpy as np
 from dataclasses import dataclass
+import cv2
+from scipy.ndimage import gaussian_filter
+import matplotlib.pyplot as plt
 @dataclass
 class Box:
     minx: int
@@ -11,7 +14,7 @@ class Box:
         return (self.maxx-self.minx) * (self.maxy-self.miny) 
 
 class LetterCentresExtractor:
-    def __init__(self, min_size: int = 50, pad: int = 5, sigma: float = 1.0):
+    def __init__(self, min_size: int = 50, pad: int = 5, sigma: float = 0.1):
         """
         min_size: minimum area (in pixels) for a region to keep
         pad: how many pixels to pad around each bounding box
@@ -47,12 +50,14 @@ class LetterCentresExtractor:
     def _get_bounding_boxes(self, img: np.ndarray) -> list[Box]:
         # 1) blur
         blur = self._gaussian_blur(img, self.sigma)
+        fig, ax = plt.subplots()
+        ax.imshow(blur, cmap="binary")
         # 2) threshold
         thr = self._threshold_otsu(blur)
         # 3) binary mask
         bw = blur > thr
         # 4) label connected components
-        labels, n_labels = self._connected_components(bw)
+        labels, n_labels = self._fast_connected_components(bw)
         # 5) remove small objects
         labels = self._remove_small_objects(labels, n_labels, self.min_size)
         # 6) extract boxes
@@ -78,30 +83,9 @@ class LetterCentresExtractor:
         cx = (box.minx + box.maxx) // 2
         return cy, cx
 
+
     def _gaussian_blur(self, img: np.ndarray, sigma: float) -> np.ndarray:
-        # build 1D Gaussian kernel
-        radius = int(3 * sigma)
-        x = np.arange(-radius, radius + 1)
-        kernel1d = np.exp(-(x**2) / (2 * sigma**2))
-        kernel1d /= kernel1d.sum()
-        # separable convolution: first along rows, then cols
-        # pad mode = constant 0
-        tmp = np.zeros_like(img, dtype=float)
-        H, W = img.shape
-        # horizontal pass
-        for i in range(H):
-            row = img[i, :]
-            padded = np.pad(row, radius, mode='constant')
-            for j in range(W):
-                tmp[i, j] = np.dot(kernel1d, padded[j:j + 2*radius + 1])
-        # vertical pass
-        out = np.zeros_like(tmp)
-        for j in range(W):
-            col = tmp[:, j]
-            padded = np.pad(col, radius, mode='constant')
-            for i in range(H):
-                out[i, j] = np.dot(kernel1d, padded[i:i + 2*radius + 1])
-        return out
+        return gaussian_filter(img, sigma=sigma, mode='constant', cval=0.0, truncate=3.0)
 
     def _threshold_otsu(self, img: np.ndarray) -> float:
         # compute 256-bin histogram
@@ -114,6 +98,14 @@ class LetterCentresExtractor:
         var_between = weight1 * weight2 * (mean1 - mean2) ** 2
         idx = np.argmax(var_between)
         return bin_centers[idx]
+
+    def _fast_connected_components(self, bw:np.ndarray) -> tuple[np.ndarray, int]:
+        mask8 = (bw > 0).astype(np.uint8) * 255
+
+        n_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+            mask8, connectivity=8)
+
+        return labels, n_labels
 
     def _connected_components(self, bw: np.ndarray) -> tuple[np.ndarray, int]:
         """
