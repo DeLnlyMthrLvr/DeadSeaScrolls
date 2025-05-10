@@ -184,6 +184,7 @@ cython_debug/
 .pypirc
 
 trocr-hebrew-finetuned/*
+trocr-hebrew-finetuned/model.safetensors
 
 ocr/logs/*
 model_weights.pth
