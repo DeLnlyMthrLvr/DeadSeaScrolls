@@ -1,94 +1,129 @@
-import sys
-from unet import UNet
-import torch.nn as nn
+import argparse
+import os
+from datetime import datetime
+
+import numpy as np
 import torch
+import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
+from torch.utils.tensorboard import SummaryWriter
+
+from unet_character import UNet
+
+import sys
 sys.path.append("../..")
 from synthetic import DataGenerator, SynthSettings
-from torchsummary import summary
-import numpy as np
-from datetime import datetime
-from torch.utils.tensorboard import SummaryWriter
-import os
 
-run_name = f"unet_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}"
-checkpoint_dir = f"checkpoints/{run_name}/"
-os.makedirs(checkpoint_dir, exist_ok=True)
-best_val_loss = float('inf')
-writer = SummaryWriter(log_dir=f"runs/{run_name}")
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-class CustomDataset(Dataset):
-    def __init__(self,scrolls, masks):
-        self.scrolls = scrolls
-        self.masks = masks
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="UNet Training Script")
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--lr", type=float, default=2e-4)
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--train-size", type=int, default=1000)
+    parser.add_argument("--val-size", type=int, default=200)
+    parser.add_argument("--downscale", type=float, default=0.3)
+    parser.add_argument("--checkpoint-dir", type=str, default="checkpoints")
+    return parser.parse_args()
+
+
+class ScrollDataset(Dataset):
+    def __init__(self, scrolls: np.ndarray, masks: np.ndarray):
+        self.scrolls = torch.from_numpy(scrolls).float().unsqueeze(1)
+        self.masks = torch.from_numpy(masks).float()
 
     def __len__(self):
-        return self.scrolls.shape[0]
-    
-    def __getitem__(self, index):
-        
-        return torch.tensor(self.scrolls[index], dtype=torch.float).unsqueeze(0), torch.tensor(self.masks[index], dtype=torch.float32) # / 255
+        return len(self.scrolls)
 
-def train(model, val_masks, val_scrolls, masks, scrolls):
+    def __getitem__(self, idx):
+        return self.scrolls[idx], self.masks[idx]
 
-    scrolls_dataset = CustomDataset(scrolls, masks) #Scrolls and segmentation masks
-    val_scrolls_dataset = CustomDataset(val_scrolls, val_masks)
 
-    loss_function = nn.BCEWithLogitsLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
-    
-    dataloader = DataLoader(dataset=scrolls_dataset, batch_size=32)
-    val_dataloader = DataLoader(dataset=val_scrolls_dataset, batch_size=32)
-    
-    track_loss = []
-    #Training
-    for batch_scrolls, batch_masks in dataloader:     
-        batch_scrolls, batch_masks = batch_scrolls.to(device), batch_masks.to(device)
-        segmentation_masks = model(batch_scrolls)             
-        loss = loss_function(segmentation_masks, batch_masks)
-        loss.backward()
-        optimizer.step()
+def train_epoch(model, loader, criterion, optimizer, device):
+    model.train()
+    losses = []
+    for imgs, masks in loader:
+        imgs, masks = imgs.to(device), masks.to(device)
+
         optimizer.zero_grad()
-        track_loss.append(loss.item())
+        logits = model(imgs)
+        loss = criterion(logits, masks)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
 
-    #Validation
-    val_track_loss = []
+        losses.append(loss.item())
+    avg_loss = float(np.mean(losses))
+    print(f"  Training Loss: {avg_loss:.4f}")
+    return avg_loss
+
+
+def validate_epoch(model, loader, criterion, device):
+    model.eval()
+    losses = []
     with torch.no_grad():
-        for batch_scrolls, batch_masks in val_dataloader:
-            batch_scrolls, batch_masks = batch_scrolls.to(device), batch_masks.to(device)
-            segmentation_masks = model(batch_scrolls)
-            loss = loss_function(segmentation_masks, batch_masks)
-            val_track_loss.append(loss.item())
+        for imgs, masks in loader:
+            imgs, masks = imgs.to(device), masks.to(device)
+            logits = model(imgs)
+            loss = criterion(logits, masks)
+            losses.append(loss.item())
+    avg_loss = float(np.mean(losses))
+    print(f"  Validation Loss: {avg_loss:.4f}")
+    return avg_loss
 
-    return np.mean(track_loss), np.mean(val_track_loss)
 
+def main():
+    args = parse_args()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_name = f"unet_{timestamp}"
+    ckpt_dir = os.path.join(args.checkpoint_dir, run_name)
+    os.makedirs(ckpt_dir, exist_ok=True)
 
-if __name__ == "__main__":
-    gen_settings = SynthSettings(downscale_factor= 0.3)
-    generator = DataGenerator( settings=gen_settings)
+    writer = SummaryWriter(log_dir=os.path.join("runs", run_name))
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Data generator
+    gen_settings = SynthSettings(downscale_factor=args.downscale)
+    generator = DataGenerator(settings=gen_settings)
+
+    # Model, loss, optimizer
     model = UNet(num_classes=27).to(device)
-    #summary(model,(1,120,300))
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Starting Training")
-    epoch = 0
-    while True:
-        tokens, masks, scrolls, _  = generator.generate_ngram_scrolls(10, skip_char_seg=False) #256 #Shapes: tokens(8000,150) , masks(8000, 27, H, W), scrolls(8000, 1, H, W)
-        val_tokens, val_masks, val_scrolls, _ = generator.generate_ngram_scrolls(2, skip_char_seg=False) #64        
-        train_loss, val_loss = train(model=model, 
-                val_masks=val_masks, 
-                val_scrolls=val_scrolls,
-                masks=masks, 
-                scrolls=scrolls)
-        
-        print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Epoch trainig loss: {np.mean(train_loss)}, Epoch validation loss: {np.mean(val_loss)}") 
-        
-        with open(f"{checkpoint_dir}loss.txt", "w") as f:
-            f.write(f"{train_loss}, {val_loss}\n")
+    criterion = nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
+    best_val_loss = float("inf")
+
+    for epoch in range(1, args.epochs + 1):
+        print(f"Epoch {epoch:03d}")
+        # Generate fresh batches each epoch
+        _, train_masks, train_scrolls, _ = generator.generate_ngram_scrolls(
+            args.train_size, skip_char_seg=False
+        )
+        _, val_masks, val_scrolls, _ = generator.generate_ngram_scrolls(
+            args.val_size, skip_char_seg=False
+        )
+
+        train_ds = ScrollDataset(train_scrolls, train_masks)
+        val_ds = ScrollDataset(val_scrolls, val_masks)
+        train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
+        val_loader = DataLoader(val_ds, batch_size=args.batch_size)
+
+        train_loss = train_epoch(model, train_loader, criterion, optimizer, device)
+        val_loss = validate_epoch(model, val_loader, criterion, device)
+
+        # Log and checkpoint
         writer.add_scalar("Loss/Train", train_loss, epoch)
-        writer.add_scalar("Loss/Validation", val_loss, epoch)
+        writer.add_scalar("Loss/Val", val_loss, epoch)
+
+        with open(os.path.join(ckpt_dir, "loss.txt"), "a") as f:
+            f.write(f"{train_loss:.4f},{val_loss:.4f}\n")
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            best_model_path = os.path.join(checkpoint_dir, "best_model.pt")
-            torch.save(model.state_dict(), best_model_path)
-        epoch += 1
+            torch.save(model.state_dict(), os.path.join(ckpt_dir, "best_model.pt"))
+
+    writer.close()
+
+
+if __name__ == "__main__":
+    main()

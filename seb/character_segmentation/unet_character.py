@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class UNet(nn.Module):
-    def __init__(self, num_classes=27, base_ch=64):
+    def __init__(self, num_classes=27, base_ch=32):
         super().__init__()
         # Encoder (in: 1×120×300)
         self.enc1 = self.conv_block(1,         base_ch)     # -> 64×120×300
@@ -33,8 +33,10 @@ class UNet(nn.Module):
     def conv_block(self, in_ch, out_ch):
         return nn.Sequential(
             nn.Conv2d(in_ch, out_ch, 3, padding=1),
+            nn.BatchNorm2d(out_ch),
             nn.LeakyReLU(inplace=True),
             nn.Conv2d(out_ch, out_ch, 3, padding=1),
+            nn.BatchNorm2d(out_ch),
             nn.LeakyReLU(inplace=True),
         )
 
@@ -87,4 +89,6 @@ class UNet(nn.Module):
         d1 = self.dec1(torch.cat([d1, e1], dim=1))
 
         # --- Final output
-        return torch.sigmoid(self.final(d1))
+        return self.final(d1)
+
+    
