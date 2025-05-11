@@ -58,6 +58,9 @@ class LineSegmentationDataset(Dataset):
 
 
 class PixelShuffle1D(nn.Module):
+    """Upscales only in the x-axis (width)
+    """
+
     def __init__(self, upscale_factor, dim_to_upscale="W"):
         super().__init__()
         self.upscale_factor = upscale_factor
@@ -89,6 +92,7 @@ class LineSegmenter(nn.Module):
     def __init__(
             self,
             base_ch: int = 32,
+            # Large kernels that can see almost the entire line
             enc_kernel_size: tuple[int, int] = (12, 40)
         ) -> None:
         super().__init__()
@@ -116,6 +120,8 @@ class LineSegmenter(nn.Module):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def enc_conv_block(self, in_ch: int, out_ch: int) -> nn.Sequential:
+        """Downscales only in the x-axis (width)
+        """
         return nn.Sequential(
             nn.Conv2d(in_ch, out_ch, kernel_size=self.enc_kernel_size, padding=self.padding, stride=(1, self.r)),
             nn.LeakyReLU(),

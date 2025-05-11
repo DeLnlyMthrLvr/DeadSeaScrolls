@@ -14,6 +14,9 @@ class Box:
         return (self.maxx-self.minx) * (self.maxy-self.miny)
 
 class LetterCentresExtractor:
+    """Given segmentation masks, extract the charcter orders, from right to left
+    """
+
     def __init__(self, min_size: int = 75, pad: int = 5, sigma: float = 0.1):
         self.min_size = min_size
         self.pad = pad
@@ -41,6 +44,8 @@ class LetterCentresExtractor:
 
 
     def _get_bounding_boxes(self, img: np.ndarray) -> list[Box]:
+        """Gets bounding boxes for each character
+        """
 
         blur = self._gaussian_blur(img, self.sigma)
         thr = self._threshold_otsu(blur)

@@ -111,17 +111,11 @@ class SegmentationDataset(Dataset):
             self.line_images.extend(li)
             self.line_segmentations.extend(ls)
 
-            # if len(token) != len(li):
-            #     fig, ax = plt.subplots(1, 2)
-
-            #     ax[0].imshow(scroll)
-            #     ax[1].imshow(line)
-
-            # assert len(token) == len(li), str(len(token)) + " " + str(len(li))
 
             if self.are_tokens:
                 self.line_tokens.extend(token)
 
+        # make them have the same size
         self.max_h = max(img.shape[-2] for img in self.line_images)
         self.max_w = max(img.shape[-1] for img in self.line_images)
 
@@ -140,6 +134,7 @@ class SegmentationDataset(Dataset):
         sm = torch.tensor(self.line_segmentations[index], dtype=torch.float)
         sm = symmetric_pad(sm, self.max_h, self.max_w)
 
+        # Segmentation mask to label mask
         C, _, _ = sm.shape
         collapsed = sm.argmax(dim=0)
         empty_mask = sm.sum(dim=0) == 0

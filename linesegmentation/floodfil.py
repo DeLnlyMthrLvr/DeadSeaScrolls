@@ -19,6 +19,9 @@ def find_local_maxima_2nd_derivative(arr):
     return np.array(maxima_indices)
 
 def label_hebrew_lines(seg: np.ndarray, min_gap: int = 8):
+    """Floodfill algorithm. Launches n_lines (detected from y-projected peaks) DFS. Only the "most behind" (on the rigth) DFS is allowed to progres.
+    This was done such that the DFS which labels the lines does not overtake some other line when they are slightly connected
+    """
 
     H, W   = seg.shape
     labels = np.zeros_like(seg, dtype=np.int32)
@@ -101,6 +104,8 @@ def label_hebrew_lines(seg: np.ndarray, min_gap: int = 8):
 
 
 def extract_lines_flood_fill(orignal_image: np.ndarray, mask: np.ndarray, inflate: int = 1) -> list[np.ndarray]:
+    """Extracts the individual line images from the orignal (full resolution) scroll image
+    """
 
     from matplotlib.colors import ListedColormap
     colors = [
