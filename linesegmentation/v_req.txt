@@ -4,3 +4,7 @@ matplotlib==3.10.1
 opencv-python==4.11.0.86
 scikit-image==0.25.2
 scipy==1.15.2
+tqdm==4.67.1
+Levenshtein==0.27.1
+numpy==2.2.4
+pandas==2.2.3

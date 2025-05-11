@@ -6,13 +6,25 @@ __pycache__/
 sea/
 /data/scrolls/*
 /data/n_gram_images
+
+
 /linesegmentation/runs/*
+!/linesegmentation/runs/
+!/linesegmentation/runs/20250507_203729_wide_unet_largek_fixed_final/
+
 /data/sample-test-2025/*
 /seb/line_segmentation/truns/*
 /seb/line_segmentation/runs/*
 /seb/line_segmentation/checkpoints/*
 /seb/line_segmentation/final_models/*
+
+
+# All runs except best
 /segmentation/runs/*
+!/segmentation/runs/
+!/segmentation/runs/20250510_152746_CCE_final/
+
+
 # C extensions
 *.so
 
@@ -196,3 +208,7 @@ ocr_refactored/*
 seb/checkpoints/*
 seb/checkpoints_line/*
 seb/runs_line/*
+
+!/data/
+!/data/test_jpg/
+!/data/test_answers/
