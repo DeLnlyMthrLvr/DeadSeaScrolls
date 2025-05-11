@@ -5,6 +5,11 @@ import imageio
 
 
 def create_cropped_alphabet():
+    """Crops unecessarly tall characters, creates new alphabet
+
+    It works by projected the character down on y-axis, finds gaps in the projection. If the gaps are too wide then the region can be removed
+    The main region is identified as a center of the gravity of the character in the projected version
+    """
     a = load_alphabet(include_paths=True)
     modified = dict()
 
@@ -25,10 +30,12 @@ def create_cropped_alphabet():
             mask = img < 200
             height, _ = img.shape
 
-        # The y coordinates of the "ink molecules"
+            # The y coordinates of the "ink molecules"
             indices = np.where(mask)[0]
+            # Identifies center of gravity (COG) of the character
             cog = int(np.mean(indices))
 
+            # Projects on the y-axis (0-th axis)
             counts = np.sum(mask, axis=1)
             empty = counts < 2
 
@@ -40,7 +47,7 @@ def create_cropped_alphabet():
 
             assert not empty[cog]
 
-
+            # Checks for the connected components gaps in the projected version
             change = np.diff(empty)
             change_i = np.where(change)[0].tolist()
 
@@ -61,7 +68,7 @@ def create_cropped_alphabet():
 
             assert main_bounds_i[0] is not None
 
-        # Travel up
+            # Travel up and check if we can crop from the top of the character
             l = main_bounds_i[0]
             cut_from_top = 0
             land = False
@@ -76,7 +83,7 @@ def create_cropped_alphabet():
                 l -= 1
                 land = not land
 
-        # Travel down
+            # Travel down and check if we can crop from the bottom
             t = main_bounds_i[1]
             maintain_top = height
             land = False
@@ -113,6 +120,7 @@ def create_cropped_alphabet():
         # plt.axvline(mean, color="red")
 
 
+    # Saves the cropped version
     for images in modified.values():
         for img, path in images:
             imageio.imwrite(path, img)

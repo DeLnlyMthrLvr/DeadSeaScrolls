@@ -7,6 +7,7 @@ from linesegmentation.unet import LineSegmenter
 from segmentation.unet import CharSegmenter
 from alphabet import token_to_char
 
+# Best unet checkpoints
 LINE_UNET_BEST = "20250507_203729_wide_unet_largek_fixed_final"
 CHAR_UNET_BEST = "20250510_152746_CCE_final"
 
@@ -98,6 +99,8 @@ def pipeline(folder: Path):
 
 
 def test():
+    """Our internal evaluation
+    """
 
     import Levenshtein
     from pathlib import Path
@@ -124,4 +127,4 @@ if __name__ == "__main__":
     print(sys.argv[1])
     path = Path(sys.argv[1])
     pipeline(path)
-    test()
+    # test()

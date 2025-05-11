@@ -12,15 +12,26 @@ from bible import BibleTexts
 
 @dataclass
 class SynthSettings:
+    """Settings that dictate how the synthetic scroll will look like
+    """
 
+    # Spacing between characters
     spacing_multiplier: float = 0.9
     image_size: tuple[int, int] = (676, 902)
+
+    # Interpolate down the scrolls
     downscale_factor: float = 1
     downscale_size: tuple[int, int] = None
 
+    # top-down and left-right
     margins: tuple[int, int] = (40, 40)
+
+    # Alow some part of the text to be in the margin regions
     allowed_portion_in_margin: float = 0.3
     line_space: int = 5
+
+    # Shrink down the line segmentation masks
+    # This was done to mitigate the UNET from creating overlapping lines
     line_seg_offset: int = 8
 
     cutout_noise: bool = False
@@ -48,6 +59,8 @@ def _create_image(
         enums: list[A],
         settings: SynthSettings
     ) -> Sample:
+    """Given list of hebrew chacters and their images, create the synthetic scroll.
+    """
 
     # Init sizes
     image_size = settings.image_size
@@ -79,13 +92,18 @@ def _create_image(
         cutout_mask = cutout_noise(*settings.image_size, radius=settings.cutout_noise_size)
 
     iterator = list(zip(images, enums))
+
+    # Not all chacters will be used if the space runs out
+    # Thus keep track which have been used
     used_chars_split_to_lines: list[str] = []
     line_chars: list[str] = []
 
     def line_end():
+        """What happens when the line ends"""
         nonlocal line_chars, used_chars_split_to_lines, line_max_x, line_min_x, line_max_y, line_min_y
 
         if len(line_chars) > 0:
+            # Generate the line segmentation mask based on the line boudning box
             used_chars_split_to_lines.append(''.join(line_chars))
             line_chars = []
 
@@ -110,9 +128,10 @@ def _create_image(
 
         left = cur_x - w
         out_of_bounds = left < 0
+        # Out of leak means too much in the margin
         out_of_leak = (left - margin_horizontal) < leak_horizontal
         if out_of_bounds or out_of_leak:
-            # Next line
+            # Next line because the character is too on the left (in the margin or outside of the image)
             cur_y += max_char_height_per_row + settings.line_space
             cur_x = start_x
             max_char_height_per_row = 0
@@ -123,14 +142,16 @@ def _create_image(
 
         bottom = cur_y + h
         out_of_bounds = bottom >= image_height
+        # Out of leak means too much in the margin
         out_of_leak = (usable_height - bottom) < leak_vertical
 
         if out_of_bounds or out_of_leak:
-            # Not enough space
+            # Not enough space anymore
             line_end()
             break
 
         # Check if it collides with cutout mask
+        # If yes do not render the character and try to render it afterwards
         if cnoise and (enum != A.Space):
             cmask = cutout_mask[cur_y:bottom, new_x:cur_x]
             letter_mask = letter_img < 200
@@ -146,7 +167,7 @@ def _create_image(
                 i -= 1
                 continue
 
-        # Letter can be applied
+        # Letter can be rendered
         if enum != A.Space:
 
             segmentation[char_token[enum], cur_y:bottom, new_x:cur_x] = mask.astype(np.uint8)
@@ -208,12 +229,14 @@ def create_alphabet_image(
     return _create_image(images, char_tokens, settings)
 
 
-TokensPerLine = list[list[str]] # (n, n_lines, sequence_length)
-SegmentationMasks = np.ndarray # (n, char_chanels, height, width)
-ScrollImages = np.ndarray # (n, height, width)
-LineMasks = np.ndarray # ()
+TokensPerLine = list[list[str]] # (batch, n_lines, sequence_length)
+SegmentationMasks = np.ndarray # (batch, char_chanels, height, width)
+ScrollImages = np.ndarray # (batch, height, width)
+LineMasks = np.ndarray # (batch,  height width)
 
 class DataGenerator:
+    """Class for managing the alphabet and the data generation
+    """
 
     def __init__(
         self,
@@ -221,10 +244,13 @@ class DataGenerator:
         alphabet = None
     ):
 
+        # Estimate how many tokens will fit based on the image size
         h, w = settings.image_size
+        # tokens per line
         tpl = w / MEAN_CHAR_WIDTH
+        # tokens per column
         tpc = h / MEAN_CHAR_HEIGHT
-
+        # Tokens per scroll
         tps = round(tpl * tpc)
 
         if alphabet is None:
@@ -239,6 +265,8 @@ class DataGenerator:
         self.bible = BibleTexts(self.max_sequence_length)
 
     def generate_ngram_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages, LineMasks]:
+        """Generate synthetic scrolls by sampling the ngrams
+        """
 
         batch_characters = []
         batch_seg_masks = []
@@ -284,6 +312,8 @@ class DataGenerator:
 
 
     def generate_passages_scrolls(self, N: int = 1_000, skip_char_seg: bool = True) -> tuple[TokensPerLine, SegmentationMasks, ScrollImages, LineMasks]:
+        """Generate synthetic scrolls by sampling the bible passages
+        """
 
         batch_characters = []
         batch_seg_masks = []
@@ -319,6 +349,10 @@ def extract_lines_cc(
         min_area: int = 500,
         inflate: int = 6
     ) -> list[np.ndarray]:
+    """Given scroll image and the line segmentation mask, extract the individual line images.
+
+    DOES NOT WORK ON THE ACTUAL UNET OUTPUT (too noisy). For that use the floodfill algorithm
+    """
 
     mask8 = (binary_mask > 0).astype(np.uint8) * 255
 
@@ -332,6 +366,7 @@ def extract_lines_cc(
         if area < min_area:
             continue
 
+        # Inflate the bounding box a bit
         x0 = max(x - inflate, 0)
         y0 = max(y - inflate, 0)
         x1 = min(x + bw + inflate, w)

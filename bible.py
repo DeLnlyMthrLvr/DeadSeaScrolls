@@ -16,6 +16,8 @@ base_url = "https://scholarlyeditions.brill.com/library/passage/urn:cts:ancJewLi
 data_dir = Path(__file__).parent / "data" / "bible"
 
 async def download_chapter(session, queue):
+    """Download the hebrew bible chapter
+    """
     while not queue.empty():
         number = await queue.get()
         url = base_url.format(number)
@@ -43,6 +45,8 @@ async def async_download():
             worker.cancel()
 
 def download():
+    """Download the hebrew bible chapters
+    """
     data_dir.mkdir(parents=True, exist_ok=True)
     asyncio.run(async_download())
 
@@ -53,6 +57,8 @@ EXTRA_FILTER = {
 
 
 def encode():
+    """Encode the bible passages to our enums
+    """
 
     non_encoded = set()
     n_non_encoded = 0
@@ -103,6 +109,8 @@ Word = list[A]
 Document = list[Word]
 
 class BibleTexts:
+    """Class for sampling the bible passages
+    """
 
     def __init__(self, max_sequence_length: int = 150):
 
